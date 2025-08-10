@@ -4056,14 +4056,19 @@ impl FlameEffect {
 
 pub fn string_vec_to_params(input: Vec<String>) -> String {
 
+    if input.is_empty() {
+        return "[]".to_string();
+    }
+
     let mut params = String::new();
-    let count = 0;
+    let mut count = 0;
     for iput in input {
         if count == 0 {
             params = format!("[\"{}\"", iput);
         } else {
             params = format!("{}, \"{}\"",params, iput);
         }
+        count += 1;
     }
 
     params = format!("{}]", params);
@@ -4159,4 +4164,345 @@ pub struct LiFxResult {
     pub id: String,
     pub label: String,
     pub status: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_lifx_config_creation() {
+        let config = LifxConfig {
+            access_token: "test_token".to_string(),
+            api_endpoints: vec!["https://api.lifx.com".to_string()],
+        };
+        assert_eq!(config.access_token, "test_token");
+        assert_eq!(config.api_endpoints.len(), 1);
+        assert_eq!(config.api_endpoints[0], "https://api.lifx.com");
+    }
+
+    #[test]
+    fn test_state_new() {
+        let state = State::new();
+        assert_eq!(state.power, None);
+        assert_eq!(state.color, None);
+        assert_eq!(state.brightness, None);
+        assert_eq!(state.duration, None);
+        assert_eq!(state.infrared, None);
+        assert_eq!(state.fast, None);
+    }
+
+    #[test]
+    fn test_state_with_values() {
+        let mut state = State::new();
+        state.power = Some("on".to_string());
+        state.brightness = Some(0.5);
+        state.duration = Some(1.0);
+        
+        assert_eq!(state.power, Some("on".to_string()));
+        assert_eq!(state.brightness, Some(0.5));
+        assert_eq!(state.duration, Some(1.0));
+    }
+
+    #[test]
+    fn test_state_delta_new() {
+        let delta = StateDelta::new();
+        assert_eq!(delta.power, None);
+        assert_eq!(delta.duration, None);
+        assert_eq!(delta.infrared, None);
+        assert_eq!(delta.hue, None);
+        assert_eq!(delta.saturation, None);
+        assert_eq!(delta.brightness, None);
+        assert_eq!(delta.kelvin, None);
+    }
+
+    #[test]
+    fn test_state_delta_with_values() {
+        let mut delta = StateDelta::new();
+        delta.power = Some("on".to_string());
+        delta.duration = Some(2.0);
+        delta.brightness = Some(0.1);
+        delta.kelvin = Some(3500);
+        
+        assert_eq!(delta.power, Some("on".to_string()));
+        assert_eq!(delta.duration, Some(2.0));
+        assert_eq!(delta.brightness, Some(0.1));
+        assert_eq!(delta.kelvin, Some(3500));
+    }
+
+    #[test]
+    fn test_breathe_effect_new() {
+        let effect = BreatheEffect::new();
+        assert_eq!(effect.color, None);
+        assert_eq!(effect.from_color, None);
+        assert_eq!(effect.period, None);
+        assert_eq!(effect.cycles, None);
+        assert_eq!(effect.persist, None);
+        assert_eq!(effect.power_on, None);
+        assert_eq!(effect.peak, None);
+    }
+
+    #[test]
+    fn test_breathe_effect_with_values() {
+        let mut effect = BreatheEffect::new();
+        effect.color = Some("red".to_string());
+        effect.period = Some(2.0);
+        effect.cycles = Some(5.0);
+        effect.persist = Some(true);
+        effect.power_on = Some(true);
+        effect.peak = Some(0.8);
+        
+        assert_eq!(effect.color, Some("red".to_string()));
+        assert_eq!(effect.period, Some(2.0));
+        assert_eq!(effect.cycles, Some(5.0));
+        assert_eq!(effect.persist, Some(true));
+        assert_eq!(effect.power_on, Some(true));
+        assert_eq!(effect.peak, Some(0.8));
+    }
+
+    #[test]
+    fn test_pulse_effect_new() {
+        let effect = PulseEffect::new();
+        assert_eq!(effect.color, None);
+        assert_eq!(effect.from_color, None);
+        assert_eq!(effect.period, None);
+        assert_eq!(effect.cycles, None);
+        assert_eq!(effect.persist, None);
+        assert_eq!(effect.power_on, None);
+    }
+
+    #[test]
+    fn test_morph_effect_new() {
+        let effect = MorphEffect::new();
+        assert_eq!(effect.period, None);
+        assert_eq!(effect.duration, None);
+        assert_eq!(effect.power_on, None);
+        assert_eq!(effect.palette, None);
+    }
+
+    #[test]
+    fn test_morph_effect_with_palette() {
+        let mut effect = MorphEffect::new();
+        effect.palette = Some(vec!["red".to_string(), "blue".to_string(), "green".to_string()]);
+        effect.period = Some(3);
+        effect.duration = Some(10.0);
+        effect.power_on = Some(true);
+        
+        let palette = effect.palette.as_ref().unwrap();
+        assert_eq!(palette.len(), 3);
+        assert_eq!(palette[0], "red");
+        assert_eq!(palette[1], "blue");
+        assert_eq!(palette[2], "green");
+        assert_eq!(effect.period, Some(3));
+        assert_eq!(effect.duration, Some(10.0));
+        assert_eq!(effect.power_on, Some(true));
+    }
+
+    #[test]
+    fn test_flame_effect_new() {
+        let effect = FlameEffect::new();
+        assert_eq!(effect.period, None);
+        assert_eq!(effect.duration, None);
+        assert_eq!(effect.power_on, None);
+    }
+
+    #[test]
+    fn test_move_effect_new() {
+        let effect = MoveEffect::new();
+        assert_eq!(effect.direction, None);
+        assert_eq!(effect.period, None);
+        assert_eq!(effect.cycles, None);
+        assert_eq!(effect.power_on, None);
+    }
+
+    #[test]
+    fn test_effects_off_new() {
+        let effect = EffectsOff::new();
+        assert_eq!(effect.power_off, None);
+    }
+
+    #[test]
+    fn test_toggle_new() {
+        let toggle = Toggle::new();
+        assert_eq!(toggle.duration, None);
+    }
+
+    #[test]
+    fn test_clean_new() {
+        let clean = Clean::new();
+        assert_eq!(clean.duration, None);
+        assert_eq!(clean.stop, None);
+    }
+
+    #[test]
+    fn test_states_new() {
+        let states = States::new();
+        assert_eq!(states.states, None);
+        assert_eq!(states.defaults, None);
+    }
+
+    #[test]
+    fn test_states_with_values() {
+        let mut states = States::new();
+        let mut state1 = State::new();
+        state1.power = Some("on".to_string());
+        state1.brightness = Some(1.0);
+        
+        let mut state2 = State::new();
+        state2.power = Some("off".to_string());
+        
+        states.states = Some(vec![state1, state2]);
+        
+        let states_vec = states.states.as_ref().unwrap();
+        assert_eq!(states_vec.len(), 2);
+        assert_eq!(states_vec[0].power, Some("on".to_string()));
+        assert_eq!(states_vec[1].power, Some("off".to_string()));
+    }
+
+    #[test]
+    fn test_string_vec_to_params() {
+        let params = vec!["param1".to_string(), "param2".to_string(), "param3".to_string()];
+        let result = string_vec_to_params(params);
+        assert_eq!(result, "[\"param1\", \"param2\", \"param3\"]");
+    }
+
+    #[test]
+    fn test_string_vec_to_params_single() {
+        let params = vec!["single".to_string()];
+        let result = string_vec_to_params(params);
+        assert_eq!(result, "[\"single\"]");
+    }
+
+    #[test]
+    fn test_string_vec_to_params_empty() {
+        let params: Vec<String> = vec![];
+        let result = string_vec_to_params(params);
+        assert_eq!(result, "[]");
+    }
+
+    #[test]
+    fn test_color_creation() {
+        let color = Color {
+            hue: Some(120.0),
+            saturation: Some(1.0),
+            kelvin: Some(3500),
+            brightness: Some(0.8),
+            error: None,
+            errors: None,
+        };
+        assert_eq!(color.hue, Some(120.0));
+        assert_eq!(color.saturation, Some(1.0));
+        assert_eq!(color.kelvin, Some(3500));
+        assert_eq!(color.brightness, Some(0.8));
+    }
+
+    #[test]
+    fn test_scene_creation() {
+        let scene = Scene {
+            uuid: "test-uuid".to_string(),
+            name: "Test Scene".to_string(),
+            account: Account { uuid: "account-uuid".to_string() },
+            states: vec![],
+            created_at: 1234567890,
+            updated_at: 1234567891,
+            error: None,
+            errors: None,
+        };
+        assert_eq!(scene.uuid, "test-uuid");
+        assert_eq!(scene.name, "Test Scene");
+        assert_eq!(scene.states.len(), 0);
+    }
+
+    #[test]
+    fn test_light_creation() {
+        let light = Light {
+            id: "test-id".to_string(),
+            uuid: "test-uuid".to_string(),
+            label: "Test Light".to_string(),
+            connected: true,
+            power: "on".to_string(),
+            brightness: 1.0,
+            color: Color {
+                hue: Some(120.0),
+                saturation: Some(1.0),
+                kelvin: Some(3500),
+                brightness: Some(1.0),
+                error: None,
+                errors: None,
+            },
+            group: Group {
+                id: "group-id".to_string(),
+                name: "Test Group".to_string(),
+            },
+            location: Location {
+                id: "location-id".to_string(),
+                name: "Test Location".to_string(),
+            },
+            product: Product {
+                name: "Test Product".to_string(),
+                identifier: "test-identifier".to_string(),
+                company: "LIFX".to_string(),
+                vendor_id: 1,
+                product_id: 1,
+                capabilities: Capabilities {
+                    has_color: true,
+                    has_variable_color_temp: true,
+                    has_ir: false,
+                    has_hev: false,
+                    has_chain: false,
+                    has_matrix: false,
+                    has_multizone: false,
+                    min_kelvin: 2500,
+                    max_kelvin: 9000,
+                },
+            },
+            last_seen: "2023-01-01T00:00:00Z".to_string(),
+            seconds_since_seen: 0,
+            error: None,
+            errors: None,
+        };
+        assert_eq!(light.id, "test-id");
+        assert_eq!(light.label, "Test Light");
+        assert!(light.connected);
+        assert_eq!(light.power, "on");
+        assert_eq!(light.brightness, 1.0);
+    }
+
+    #[test]
+    fn test_lifx_results_creation() {
+        let results = LiFxResults {
+            results: Some(vec![
+                LiFxResult {
+                    id: "id1".to_string(),
+                    label: "Light 1".to_string(),
+                    status: "ok".to_string(),
+                },
+                LiFxResult {
+                    id: "id2".to_string(),
+                    label: "Light 2".to_string(),
+                    status: "ok".to_string(),
+                },
+            ]),
+            error: None,
+        };
+        
+        assert!(results.results.is_some());
+        let results_vec = results.results.unwrap();
+        assert_eq!(results_vec.len(), 2);
+        assert_eq!(results_vec[0].id, "id1");
+        assert_eq!(results_vec[1].label, "Light 2");
+        assert!(results.error.is_none());
+    }
+
+    #[test]
+    fn test_lifx_results_with_error() {
+        let results = LiFxResults {
+            results: None,
+            error: Some("API Error".to_string()),
+        };
+        
+        assert!(results.results.is_none());
+        assert!(results.error.is_some());
+        assert_eq!(results.error.unwrap(), "API Error");
+    }
 }
