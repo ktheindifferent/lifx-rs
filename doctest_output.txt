@@ -1,0 +1,2158 @@
+   Compiling openssl-sys v0.9.87
+   Compiling tokio v1.28.1
+   Compiling futures-core v0.3.28
+   Compiling mio v0.8.6
+   Compiling slab v0.4.8
+   Compiling num_cpus v1.15.0
+   Compiling socket2 v0.4.9
+   Compiling futures-task v0.3.28
+   Compiling memchr v2.5.0
+   Compiling tracing-core v0.1.30
+   Compiling tracing-attributes v0.1.24
+   Compiling itoa v1.0.6
+   Compiling tinyvec_macros v0.1.1
+   Compiling futures-util v0.3.28
+   Compiling openssl v0.10.52
+   Compiling foreign-types-shared v0.1.1
+   Compiling foreign-types v0.3.2
+   Compiling tinyvec v1.6.0
+   Compiling tracing v0.1.37
+   Compiling openssl-macros v0.1.1
+   Compiling native-tls v0.2.11
+   Compiling pin-utils v0.1.0
+   Compiling futures-channel v0.3.28
+   Compiling bitflags v1.3.2
+   Compiling futures-io v0.3.28
+   Compiling unicode-normalization v0.1.22
+   Compiling indexmap v1.9.3
+   Compiling unicode-bidi v0.3.13
+   Compiling percent-encoding v2.2.0
+   Compiling fnv v1.0.7
+   Compiling openssl-probe v0.1.5
+   Compiling serde_derive v1.0.162
+   Compiling http v0.2.9
+   Compiling form_urlencoded v1.1.0
+   Compiling getrandom v0.2.9
+   Compiling syn v1.0.109
+   Compiling futures-sink v0.3.28
+   Compiling serde v1.0.162
+   Compiling hashbrown v0.12.3
+   Compiling httparse v1.8.0
+   Compiling tokio-util v0.7.8
+   Compiling rand_core v0.6.4
+   Compiling tokio-native-tls v0.3.1
+   Compiling idna v0.3.0
+   Compiling lock_api v0.4.9
+   Compiling thiserror v1.0.40
+   Compiling parking_lot_core v0.9.7
+   Compiling async-trait v0.1.68
+   Compiling ppv-lite86 v0.2.17
+   Compiling try-lock v0.2.4
+   Compiling smallvec v1.10.0
+   Compiling want v0.3.0
+   Compiling rand_chacha v0.3.1
+   Compiling url v2.3.1
+   Compiling h2 v0.3.18
+   Compiling http-body v0.4.5
+   Compiling thiserror-impl v1.0.40
+   Compiling tower-service v0.3.2
+   Compiling heck v0.4.1
+   Compiling scopeguard v1.1.0
+   Compiling httpdate v1.0.2
+   Compiling ryu v1.0.13
+   Compiling ipnet v2.7.2
+   Compiling matches v0.1.10
+   Compiling serde_json v1.0.96
+   Compiling match_cfg v0.1.0
+   Compiling hostname v0.3.1
+   Compiling idna v0.2.3
+   Compiling hyper v0.14.26
+   Compiling enum-as-inner v0.5.1
+   Compiling rand v0.8.5
+   Compiling lazy_static v1.4.0
+   Compiling linked-hash-map v0.5.6
+   Compiling data-encoding v2.3.3
+   Compiling quick-error v1.2.3
+   Compiling resolv-conf v0.7.0
+   Compiling trust-dns-proto v0.22.0
+   Compiling lru-cache v0.1.2
+   Compiling hyper-tls v0.5.0
+   Compiling parking_lot v0.12.1
+   Compiling serde_urlencoded v0.7.1
+   Compiling encoding_rs v0.8.32
+   Compiling mime v0.3.17
+   Compiling base64 v0.21.0
+   Compiling reqwest v0.11.17
+   Compiling trust-dns-resolver v0.22.0
+   Compiling byteorder v1.4.3
+   Compiling lifx-rs v0.1.30 (/root/repo)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 48.48s
+   Doc-tests lifx_rs
+
+running 61 tests
+test src/lib.rs - (line 103) ... FAILED
+test src/lib.rs - (line 48) ... FAILED
+test src/lib.rs - BreatheEffect::new (line 3578) ... FAILED
+test src/lib.rs - Color::async_validate (line 3125) ... FAILED
+test src/lib.rs - Color::validate (line 3182) ... FAILED
+test src/lib.rs - EffectsOff::new (line 3940) ... ok
+test src/lib.rs - FlameEffect::new (line 3998) ... FAILED
+test src/lib.rs - Light::async_breathe_effect (line 219) ... FAILED
+test src/lib.rs - Light::async_breathe_effect_by_selector (line 271) ... FAILED
+test src/lib.rs - Light::async_clean (line 350) ... FAILED
+test src/lib.rs - Light::async_clean_by_selector (line 399) ... FAILED
+test src/lib.rs - (line 53) ... ok
+test src/lib.rs - Light::async_effects_off (line 475) ... FAILED
+test src/lib.rs - Light::async_effects_off_by_selector (line 523) ... FAILED
+test src/lib.rs - Light::async_flame_effect (line 600) ... FAILED
+test src/lib.rs - Light::async_flame_effect_by_selector (line 650) ... FAILED
+test src/lib.rs - Light::async_list_all (line 726) ... FAILED
+test src/lib.rs - Light::async_list_by_selector (line 759) ... FAILED
+test src/lib.rs - Light::async_morph_effect (line 817) ... FAILED
+test src/lib.rs - Light::async_morph_effect_by_selector (line 873) ... FAILED
+test src/lib.rs - Light::async_move_effect (line 951) ... FAILED
+test src/lib.rs - Light::async_move_effect_by_selector (line 1002) ... FAILED
+test src/lib.rs - Light::async_pulse_effect (line 1079) ... FAILED
+test src/lib.rs - Light::async_pulse_effect_by_selector (line 1131) ... FAILED
+test src/lib.rs - Light::async_set_state_by_selector (line 1262) ... FAILED
+test src/lib.rs - Light::async_set_state (line 1213) ... FAILED
+test src/lib.rs - Light::async_set_states (line 1335) ... FAILED
+test src/lib.rs - Light::async_state_delta_by_selector (line 1425) ... FAILED
+test src/lib.rs - Light::async_toggle (line 1502) ... FAILED
+test src/lib.rs - Light::async_toggle_by_selector (line 1550) ... FAILED
+test src/lib.rs - Light::breathe_by_selector_effect (line 1683) ... FAILED
+test src/lib.rs - Light::breathe_effect (line 1632) ... FAILED
+test src/lib.rs - Light::clean (line 1760) ... FAILED
+test src/lib.rs - Light::clean_by_selector (line 1808) ... FAILED
+test src/lib.rs - Light::effects_off (line 1882) ... FAILED
+test src/lib.rs - Light::effects_off_by_selector (line 1929) ... FAILED
+test src/lib.rs - Light::flame_effect_by_selector (line 2051) ... FAILED
+test src/lib.rs - Light::flame_effect (line 2002) ... FAILED
+test src/lib.rs - Light::list_all (line 2124) ... FAILED
+test src/lib.rs - Light::list_by_selector (line 2156) ... FAILED
+test src/lib.rs - Light::morph_effect (line 2214) ... FAILED
+test src/lib.rs - Light::morph_effect_by_selector (line 2269) ... FAILED
+test src/lib.rs - Light::move_effect_by_selector (line 2391) ... FAILED
+test src/lib.rs - Light::move_effect (line 2341) ... FAILED
+test src/lib.rs - Light::pulse_effect_by_selector (line 2507) ... FAILED
+test src/lib.rs - Light::pulse_effect (line 2456) ... FAILED
+test src/lib.rs - Light::set_state (line 2579) ... FAILED
+test src/lib.rs - Light::set_state_by_selector (line 2627) ... FAILED
+test src/lib.rs - Light::set_states (line 2697) ... FAILED
+test src/lib.rs - Light::state_delta_by_selector (line 2783) ... FAILED
+test src/lib.rs - Light::toggle (line 2857) ... FAILED
+test src/lib.rs - Light::toggle_by_selector (line 2904) ... FAILED
+test src/lib.rs - MorphEffect::new (line 3761) ... FAILED
+test src/lib.rs - PulseEffect::new (line 3856) ... FAILED
+test src/lib.rs - Scene::async_list (line 2995) ... FAILED
+test src/lib.rs - Scene::list (line 3053) ... FAILED
+test src/lib.rs - MoveEffect::new (line 3676) ... ok
+test src/lib.rs - StateDelta::new (line 3474) ... FAILED
+test src/lib.rs - State::new (line 3291) ... ok
+test src/lib.rs - States::new (line 3421) ... ok
+test src/lib.rs - Toggle::new (line 3370) ... ok
+
+failures:
+
+---- src/lib.rs - (line 103) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:105:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:106:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0433, E0752.
+For more information about an error, try `rustc --explain E0433`.
+Couldn't compile the test.
+---- src/lib.rs - (line 48) stdout ----
+error[E0425]: cannot find value `lifx` in this scope
+ --> src/lib.rs:49:1
+  |
+3 | lifx-rs = "0.1.28"
+  | ^^^^ not found in this scope
+
+error[E0425]: cannot find value `rs` in this scope
+ --> src/lib.rs:49:6
+  |
+3 | lifx-rs = "0.1.28"
+  |      ^^ not found in this scope
+
+error[E0070]: invalid left-hand side of assignment
+ --> src/lib.rs:49:9
+  |
+3 | lifx-rs = "0.1.28"
+  | ------- ^
+  | |
+  | cannot assign to this expression
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0070, E0425.
+For more information about an error, try `rustc --explain E0070`.
+Couldn't compile the test.
+---- src/lib.rs - BreatheEffect::new (line 3578) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:3596:27
+   |
+19 |     breathe.period = Some(10);
+   |                      ---- ^^ expected `f64`, found integer
+   |                      |
+   |                      arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:3596:22
+   |
+19 |     breathe.period = Some(10);
+   |                      ^^^^^--^
+   |                           |
+   |                           this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+19 |     breathe.period = Some(10.0);
+   |                             ++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Color::async_validate (line 3125) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:3127:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+    --> src/lib.rs:3141:46
+     |
+17   |     let scenes = lifx::Color::async_validate(key, format!("red")).await?;
+     |                  --------------------------- ^^^ expected `LifxConfig`, found `String`
+     |                  |
+     |                  arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:3145:18
+     |
+3145 |     pub async fn async_validate(config: LifxConfig, color: String) -> Result<Color, reqwest::Error> {
+     |                  ^^^^^^^^^^^^^^
+
+error[E0277]: the `?` operator can only be used in an async function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+  --> src/lib.rs:3141:72
+   |
+4  |   async fn main() {
+   |  _________________-
+5  | |  
+6  | |     let key = "xxx".to_string();
+7  | |     let mut api_endpoints: Vec<String> = Vec::new();
+...  |
+17 | |     let scenes = lifx::Color::async_validate(key, format!("red")).await?;
+   | |                                                                        ^ cannot use the `?` operator in an async function that returns `()`
+18 | | }
+   | |_- this function should return `Result` or `Option` to accept `?`
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:3128:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0277, E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0277`.
+Couldn't compile the test.
+---- src/lib.rs - Color::validate (line 3182) stdout ----
+error[E0061]: this function takes 2 arguments but 1 argument was supplied
+    --> src/lib.rs:3197:18
+     |
+16   |     let scenes = lifx::Color::validate(config)?;
+     |                  ^^^^^^^^^^^^^^^^^^^^^-------- argument #2 of type `String` is missing
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:3201:12
+     |
+3201 |     pub fn validate(config: LifxConfig, color: String) -> Result<Color, reqwest::Error> {
+     |            ^^^^^^^^
+help: provide the argument
+     |
+16   |     let scenes = lifx::Color::validate(config, /* String */)?;
+     |                                              ++++++++++++++
+
+error[E0277]: the `?` operator can only be used in a function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+  --> src/lib.rs:3197:47
+   |
+3  | fn main() {
+   | --------- this function should return `Result` or `Option` to accept `?`
+...
+16 |     let scenes = lifx::Color::validate(config)?;
+   |                                               ^ cannot use the `?` operator in a function that returns `()`
+   |
+help: consider adding return type
+   |
+3  ~ fn main() -> Result<(), Box<dyn std::error::Error>> {
+4  |  
+...
+16 |     let scenes = lifx::Color::validate(config)?;
+17 +     Ok(())
+   |
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0061, E0277.
+For more information about an error, try `rustc --explain E0061`.
+Couldn't compile the test.
+---- src/lib.rs - FlameEffect::new (line 3998) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:4015:34
+   |
+18 |     flame_effect.duration = Some(0);
+   |                             ---- ^ expected `f64`, found integer
+   |                             |
+   |                             arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:4015:29
+   |
+18 |     flame_effect.duration = Some(0);
+   |                             ^^^^^-^
+   |                                  |
+   |                                  this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+18 |     flame_effect.duration = Some(0.0);
+   |                                   ++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_breathe_effect (line 219) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:221:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+  --> src/lib.rs:243:35
+   |
+25 |             breathe.period = Some(10);
+   |                              ---- ^^ expected `f64`, found integer
+   |                              |
+   |                              arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:243:30
+   |
+25 |             breathe.period = Some(10);
+   |                              ^^^^^--^
+   |                                   |
+   |                                   this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+25 |             breathe.period = Some(10.0);
+   |                                     ++
+
+error[E0308]: mismatched types
+   --> src/lib.rs:248:58
+    |
+30  |                 let results = light.async_breathe_effect(key.clone(), breathe.clone()).await;
+    |                                     -------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |                                     |
+    |                                     arguments to this method are incorrect
+    |
+note: method defined here
+   --> /root/repo/src/lib.rs:257:18
+    |
+257 |     pub async fn async_breathe_effect(&self, config: LifxConfig, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
+    |                  ^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:222:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_breathe_effect_by_selector (line 271) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:273:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+  --> src/lib.rs:290:27
+   |
+20 |     breathe.period = Some(10);
+   |                      ---- ^^ expected `f64`, found integer
+   |                      |
+   |                      arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:290:22
+   |
+20 |     breathe.period = Some(10);
+   |                      ^^^^^--^
+   |                           |
+   |                           this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+20 |     breathe.period = Some(10.0);
+   |                             ++
+
+error[E0308]: mismatched types
+   --> src/lib.rs:295:51
+    |
+25  |     lifx::Light::async_breathe_effect_by_selector(key.clone(), format!("all"), breathe).await;
+    |     --------------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |     |
+    |     arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> /root/repo/src/lib.rs:299:18
+    |
+299 |     pub async fn async_breathe_effect_by_selector(config: LifxConfig, selector: String, breathe: BreatheEffect) ->  Result<LiFxResults, r...
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:274:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_clean (line 350) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:352:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+   --> src/lib.rs:376:49
+    |
+27  |                 let results = light.async_clean(key.clone(), clean.clone()).await;
+    |                                     ----------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |                                     |
+    |                                     arguments to this method are incorrect
+    |
+note: method defined here
+   --> /root/repo/src/lib.rs:385:18
+    |
+385 |     pub async fn async_clean(&self, config: LifxConfig, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
+    |                  ^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:353:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_clean_by_selector (line 399) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:401:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+   --> src/lib.rs:420:42
+    |
+22  |     lifx::Light::async_clean_by_selector(key.clone(), format!("all"), clean).await;
+    |     ------------------------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |     |
+    |     arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> /root/repo/src/lib.rs:424:18
+    |
+424 |     pub async fn async_clean_by_selector(config: LifxConfig, selector: String, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:402:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_effects_off (line 475) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:477:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+   --> src/lib.rs:500:55
+    |
+26  |                 let results = light.async_effects_off(key.clone(), effects_off.clone()).await;
+    |                                     ----------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |                                     |
+    |                                     arguments to this method are incorrect
+    |
+note: method defined here
+   --> /root/repo/src/lib.rs:509:18
+    |
+509 |     pub async fn async_effects_off(&self, config: LifxConfig, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
+    |                  ^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:478:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_effects_off_by_selector (line 523) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:525:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+   --> src/lib.rs:543:48
+    |
+21  |     lifx::Light::async_effects_off_by_selector(key.clone(), format!("all"), effects_off).await;
+    |     ------------------------------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |     |
+    |     arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> /root/repo/src/lib.rs:547:18
+    |
+547 |     pub async fn async_effects_off_by_selector(config: LifxConfig, selector: String, effects_off: EffectsOff) ->  Result<LiFxResults, req...
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:526:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_flame_effect (line 600) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:602:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+  --> src/lib.rs:623:42
+   |
+24 |             flame_effect.duration = Some(0);
+   |                                     ---- ^ expected `f64`, found integer
+   |                                     |
+   |                                     arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:623:37
+   |
+24 |             flame_effect.duration = Some(0);
+   |                                     ^^^^^-^
+   |                                          |
+   |                                          this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+24 |             flame_effect.duration = Some(0.0);
+   |                                           ++
+
+error[E0308]: mismatched types
+   --> src/lib.rs:627:56
+    |
+28  |                 let results = light.async_flame_effect(key.clone(), flame_effect.clone()).await;
+    |                                     ------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |                                     |
+    |                                     arguments to this method are incorrect
+    |
+note: method defined here
+   --> /root/repo/src/lib.rs:636:18
+    |
+636 |     pub async fn async_flame_effect(&self, config: LifxConfig, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
+    |                  ^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:603:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_flame_effect_by_selector (line 650) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:652:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+  --> src/lib.rs:668:34
+   |
+19 |     flame_effect.duration = Some(0);
+   |                             ---- ^ expected `f64`, found integer
+   |                             |
+   |                             arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:668:29
+   |
+19 |     flame_effect.duration = Some(0);
+   |                             ^^^^^-^
+   |                                  |
+   |                                  this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+19 |     flame_effect.duration = Some(0.0);
+   |                                   ++
+
+error[E0308]: mismatched types
+   --> src/lib.rs:672:49
+    |
+23  |     lifx::Light::async_flame_effect_by_selector(key.clone(), format!("all"), flame_effect).await;
+    |     ------------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |     |
+    |     arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> /root/repo/src/lib.rs:676:18
+    |
+676 |     pub async fn async_flame_effect_by_selector(config: LifxConfig, selector: String, flame_effect: FlameEffect) ->  Result<LiFxResults, ...
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:653:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_list_all (line 726) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:728:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0277]: the `?` operator can only be used in an async function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+  --> src/lib.rs:742:63
+   |
+4  |   async fn main() {
+   |  _________________-
+5  | |  
+6  | |     let key = "xxx".to_string();
+7  | |     let mut api_endpoints: Vec<String> = Vec::new();
+...  |
+17 | |     let all_lights = lifx::Light::async_list_all(config).await?;
+   | |                                                               ^ cannot use the `?` operator in an async function that returns `()`
+18 | | }
+   | |_- this function should return `Result` or `Option` to accept `?`
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:729:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0277, E0433, E0752.
+For more information about an error, try `rustc --explain E0277`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_list_by_selector (line 759) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:761:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+   --> src/lib.rs:775:58
+    |
+17  |     let all_lights = lifx::Light::async_list_by_selector(key, format!("all")).await?;
+    |                      ----------------------------------- ^^^ expected `LifxConfig`, found `String`
+    |                      |
+    |                      arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> /root/repo/src/lib.rs:779:18
+    |
+779 |     pub async fn async_list_by_selector(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
+    |                  ^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the `?` operator can only be used in an async function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+  --> src/lib.rs:775:84
+   |
+4  |   async fn main() {
+   |  _________________-
+5  | |  
+6  | |     let key = "xxx".to_string();
+7  | |     let mut api_endpoints: Vec<String> = Vec::new();
+...  |
+17 | |     let all_lights = lifx::Light::async_list_by_selector(key, format!("all")).await?;
+   | |                                                                                    ^ cannot use the `?` operator in an async function that returns `()`
+18 | | }
+   | |_- this function should return `Result` or `Option` to accept `?`
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:762:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0277, E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0277`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_morph_effect (line 817) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:819:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+  --> src/lib.rs:840:42
+   |
+24 |             morph_effect.duration = Some(0);
+   |                                     ---- ^ expected `f64`, found integer
+   |                                     |
+   |                                     arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:840:37
+   |
+24 |             morph_effect.duration = Some(0);
+   |                                     ^^^^^-^
+   |                                          |
+   |                                          this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+24 |             morph_effect.duration = Some(0.0);
+   |                                           ++
+
+error[E0308]: mismatched types
+   --> src/lib.rs:850:56
+    |
+34  |                 let results = light.async_morph_effect(key.clone(), morph_effect.clone()).await;
+    |                                     ------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |                                     |
+    |                                     arguments to this method are incorrect
+    |
+note: method defined here
+   --> /root/repo/src/lib.rs:859:18
+    |
+859 |     pub async fn async_morph_effect(&self, config: LifxConfig, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
+    |                  ^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:820:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_morph_effect_by_selector (line 873) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:875:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+  --> src/lib.rs:891:34
+   |
+19 |     morph_effect.duration = Some(0);
+   |                             ---- ^ expected `f64`, found integer
+   |                             |
+   |                             arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:891:29
+   |
+19 |     morph_effect.duration = Some(0);
+   |                             ^^^^^-^
+   |                                  |
+   |                                  this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+19 |     morph_effect.duration = Some(0.0);
+   |                                   ++
+
+error[E0308]: mismatched types
+   --> src/lib.rs:901:49
+    |
+29  |     lifx::Light::async_morph_effect_by_selector(key.clone(), format!("all"), morph_effect).await;
+    |     ------------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |     |
+    |     arguments to this function are incorrect
+    |
+note: associated function defined here
+   --> /root/repo/src/lib.rs:905:18
+    |
+905 |     pub async fn async_morph_effect_by_selector(config: LifxConfig, selector: String, morph_effect: MorphEffect) ->  Result<LiFxResults, ...
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:876:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_move_effect (line 951) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:953:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+   --> src/lib.rs:979:55
+    |
+29  |                 let results = light.async_move_effect(key.clone(), move_effect.clone()).await;
+    |                                     ----------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+    |                                     |
+    |                                     arguments to this method are incorrect
+    |
+note: method defined here
+   --> /root/repo/src/lib.rs:988:18
+    |
+988 |     pub async fn async_move_effect(&self, config: LifxConfig, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
+    |                  ^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:954:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_move_effect_by_selector (line 1002) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1004:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1025:48
+     |
+24   |     lifx::Light::async_move_effect_by_selector(key.clone(), format!("all"), move_effect).await;
+     |     ------------------------------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1029:18
+     |
+1029 |     pub async fn async_move_effect_by_selector(config: LifxConfig, selector: String, move_effect: MoveEffect) ->  Result<LiFxResults, req...
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1005:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_pulse_effect (line 1079) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1081:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+  --> src/lib.rs:1103:33
+   |
+25 |             pulse.period = Some(10);
+   |                            ---- ^^ expected `f64`, found integer
+   |                            |
+   |                            arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:1103:28
+   |
+25 |             pulse.period = Some(10);
+   |                            ^^^^^--^
+   |                                 |
+   |                                 this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+25 |             pulse.period = Some(10.0);
+   |                                   ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1108:56
+     |
+30   |                 let results = light.async_pulse_effect(key.clone(), pulse.clone()).await;
+     |                                     ------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:1117:18
+     |
+1117 |     pub async fn async_pulse_effect(&self, config: LifxConfig, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
+     |                  ^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1082:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_pulse_effect_by_selector (line 1131) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1133:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+  --> src/lib.rs:1150:25
+   |
+20 |     pulse.period = Some(10);
+   |                    ---- ^^ expected `f64`, found integer
+   |                    |
+   |                    arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:1150:20
+   |
+20 |     pulse.period = Some(10);
+   |                    ^^^^^--^
+   |                         |
+   |                         this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+20 |     pulse.period = Some(10.0);
+   |                           ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1155:49
+     |
+25   |     lifx::Light::async_pulse_effect_by_selector(key.clone(), format!("all"), pulse).await;
+     |     ------------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1159:18
+     |
+1159 |     pub async fn async_pulse_effect_by_selector(config: LifxConfig, selector: String, pulse_effect: PulseEffect) ->  Result<LiFxResults, ...
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1134:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_set_state_by_selector (line 1262) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1264:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1282:46
+     |
+21   |     lifx::Light::async_set_state_by_selector(key.clone(), format!("all"), off_state).await;
+     |     ---------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1286:18
+     |
+1286 |     pub async fn async_set_state_by_selector(config: LifxConfig, selector: String, state: State) ->  Result<LiFxResults, reqwest::Error>{
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1265:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_set_state (line 1213) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1215:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1239:53
+     |
+27   |                 let results = light.async_set_state(key.clone(), state.clone()).await;
+     |                                     --------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:1248:18
+     |
+1248 |     pub async fn async_set_state(&self, config: LifxConfig, state: State) ->  Result<LiFxResults, reqwest::Error>{
+     |                  ^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1216:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_set_states (line 1335) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1337:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1368:35
+     |
+34   |     lifx::Light::async_set_states(key.clone(), set_states).await;
+     |     ----------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1372:18
+     |
+1372 |     pub async fn async_set_states(config: LifxConfig, states: States) ->  Result<LiFxResults, reqwest::Error>{
+     |                  ^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1338:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_state_delta_by_selector (line 1425) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1427:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0425]: cannot find value `toggle` in this scope
+  --> src/lib.rs:1446:77
+   |
+22 |     lifx::Light::async_state_delta_by_selector(key.clone(), format!("all"), toggle).await;
+   |                                                                             ^^^^^^ not found in this scope
+
+error[E0308]: mismatched types
+  --> src/lib.rs:1442:27
+   |
+18 |     delta.duration = Some(0);
+   |                      ---- ^ expected `f64`, found integer
+   |                      |
+   |                      arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:1442:22
+   |
+18 |     delta.duration = Some(0);
+   |                      ^^^^^-^
+   |                           |
+   |                           this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+18 |     delta.duration = Some(0.0);
+   |                            ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1446:48
+     |
+22   |     lifx::Light::async_state_delta_by_selector(key.clone(), format!("all"), toggle).await;
+     |     ------------------------------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1450:18
+     |
+1450 |     pub async fn async_state_delta_by_selector(config: LifxConfig, selector: String, delta: StateDelta) ->  Result<LiFxResults, reqwest::...
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1428:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 5 previous errors
+
+Some errors have detailed explanations: E0308, E0425, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_toggle (line 1502) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1504:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0425]: cannot find value `clean` in this scope
+  --> src/lib.rs:1527:63
+   |
+26 |                 let results = light.async_toggle(key.clone(), clean.clone()).await;
+   |                                                               ^^^^^ not found in this scope
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1527:50
+     |
+26   |                 let results = light.async_toggle(key.clone(), clean.clone()).await;
+     |                                     ------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:1536:18
+     |
+1536 |     pub async fn async_toggle(&self, config: LifxConfig, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
+     |                  ^^^^^^^^^^^^
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1505:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 4 previous errors
+
+Some errors have detailed explanations: E0308, E0425, E0433, E0752.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::async_toggle_by_selector (line 1550) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:1552:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1570:46
+     |
+21   |     lifx_rs::Light::async_toggle_by_selector(key.clone(), format!("all"), toggle).await?;
+     |     ---------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1574:18
+     |
+1574 |     pub async fn async_toggle_by_selector(config: LifxConfig, selector: String, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
+     |                  ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: the `?` operator can only be used in an async function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+  --> src/lib.rs:1570:88
+   |
+4  |   async fn main() {
+   |  _________________-
+5  | |  
+6  | |     let key = "xxx".to_string();
+7  | |     let mut api_endpoints: Vec<String> = Vec::new();
+...  |
+21 | |     lifx_rs::Light::async_toggle_by_selector(key.clone(), format!("all"), toggle).await?;
+   | |                                                                                        ^ cannot use the `?` operator in an async function that returns `()`
+22 | | }
+   | |_- this function should return `Result` or `Option` to accept `?`
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:1553:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `lifx`
+  --> src/lib.rs:1561:18
+   |
+12 |     let config = lifx::LifxConfig{
+   |                  ^^^^ use of unresolved module or unlinked crate `lifx`
+   |
+   = help: if you wanted to use a crate named `lifx`, use `cargo add lifx` to add it to your `Cargo.toml`
+
+error: aborting due to 5 previous errors
+
+Some errors have detailed explanations: E0277, E0308, E0433, E0752.
+For more information about an error, try `rustc --explain E0277`.
+Couldn't compile the test.
+---- src/lib.rs - Light::breathe_by_selector_effect (line 1683) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:1701:27
+   |
+19 |     breathe.period = Some(10);
+   |                      ---- ^^ expected `f64`, found integer
+   |                      |
+   |                      arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:1701:22
+   |
+19 |     breathe.period = Some(10);
+   |                      ^^^^^--^
+   |                           |
+   |                           this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+19 |     breathe.period = Some(10.0);
+   |                             ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1706:45
+     |
+24   |     lifx::Light::breathe_by_selector_effect(key.clone(), format!("all"), breathe);
+     |     --------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1710:12
+     |
+1710 |     pub fn breathe_by_selector_effect(config: LifxConfig, selector: String, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::breathe_effect (line 1632) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:1655:35
+   |
+24 |             breathe.period = Some(10);
+   |                              ---- ^^ expected `f64`, found integer
+   |                              |
+   |                              arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:1655:30
+   |
+24 |             breathe.period = Some(10);
+   |                              ^^^^^--^
+   |                                   |
+   |                                   this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+24 |             breathe.period = Some(10.0);
+   |                                     ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:1660:52
+     |
+29   |                 let results = light.breathe_effect(key.clone(), breathe.clone());
+     |                                     -------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:1669:12
+     |
+1669 |     pub fn breathe_effect(&self, config: LifxConfig, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::clean (line 1760) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:1785:43
+     |
+26   |                 let results = light.clean(key.clone(), clean.clone());
+     |                                     ----- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:1794:12
+     |
+1794 |     pub fn clean(&self, config: LifxConfig, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::clean_by_selector (line 1808) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:1828:36
+     |
+21   |     lifx::Light::clean_by_selector(key.clone(), format!("all"), clean);
+     |     ------------------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1832:12
+     |
+1832 |     pub fn clean_by_selector(config: LifxConfig, selector: String, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::effects_off (line 1882) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:1906:49
+     |
+25   |                 let results = light.effects_off(key.clone(), effects_off.clone());
+     |                                     ----------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:1915:12
+     |
+1915 |     pub fn effects_off(&self, config: LifxConfig, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::effects_off_by_selector (line 1929) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:1948:42
+     |
+20   |     lifx::Light::effects_off_by_selector(key.clone(), format!("all"), effects_off);
+     |     ------------------------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:1952:12
+     |
+1952 |     pub fn effects_off_by_selector(config: LifxConfig, selector: String, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::flame_effect_by_selector (line 2051) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:2068:34
+   |
+18 |     flame_effect.duration = Some(0);
+   |                             ---- ^ expected `f64`, found integer
+   |                             |
+   |                             arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:2068:29
+   |
+18 |     flame_effect.duration = Some(0);
+   |                             ^^^^^-^
+   |                                  |
+   |                                  this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+18 |     flame_effect.duration = Some(0.0);
+   |                                   ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:2072:43
+     |
+22   |     lifx::Light::flame_effect_by_selector(key.clone(), format!("all"), flame_effect);
+     |     ------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2076:12
+     |
+2076 |     pub fn flame_effect_by_selector(config: LifxConfig, selector: String, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Err...
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::flame_effect (line 2002) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:2024:42
+   |
+23 |             flame_effect.duration = Some(0);
+   |                                     ---- ^ expected `f64`, found integer
+   |                                     |
+   |                                     arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:2024:37
+   |
+23 |             flame_effect.duration = Some(0);
+   |                                     ^^^^^-^
+   |                                          |
+   |                                          this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+23 |             flame_effect.duration = Some(0.0);
+   |                                           ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:2028:50
+     |
+27   |                 let results = light.flame_effect(key.clone(), flame_effect.clone());
+     |                                     ------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:2037:12
+     |
+2037 |     pub fn flame_effect(&self, config: LifxConfig, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::list_all (line 2124) stdout ----
+error[E0277]: the `?` operator can only be used in a function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+  --> src/lib.rs:2139:51
+   |
+3  | fn main() {
+   | --------- this function should return `Result` or `Option` to accept `?`
+...
+16 |     let all_lights = lifx::Light::list_all(config)?;
+   |                                                   ^ cannot use the `?` operator in a function that returns `()`
+   |
+help: consider adding return type
+   |
+3  ~ fn main() -> Result<(), Box<dyn std::error::Error>> {
+4  |  
+...
+16 |     let all_lights = lifx::Light::list_all(config)?;
+17 +     Ok(())
+   |
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0277`.
+Couldn't compile the test.
+---- src/lib.rs - Light::list_by_selector (line 2156) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:2171:52
+     |
+16   |     let all_lights = lifx::Light::list_by_selector(key, format!("all"))?;
+     |                      ----------------------------- ^^^ expected `LifxConfig`, found `String`
+     |                      |
+     |                      arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2175:12
+     |
+2175 |     pub fn list_by_selector(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
+     |            ^^^^^^^^^^^^^^^^
+
+error[E0277]: the `?` operator can only be used in a function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+  --> src/lib.rs:2171:72
+   |
+3  | fn main() {
+   | --------- this function should return `Result` or `Option` to accept `?`
+...
+16 |     let all_lights = lifx::Light::list_by_selector(key, format!("all"))?;
+   |                                                                        ^ cannot use the `?` operator in a function that returns `()`
+   |
+help: consider adding return type
+   |
+3  ~ fn main() -> Result<(), Box<dyn std::error::Error>> {
+4  |  
+...
+16 |     let all_lights = lifx::Light::list_by_selector(key, format!("all"))?;
+17 +     Ok(())
+   |
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+Couldn't compile the test.
+---- src/lib.rs - Light::morph_effect (line 2214) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:2236:42
+   |
+23 |             morph_effect.duration = Some(0);
+   |                                     ---- ^ expected `f64`, found integer
+   |                                     |
+   |                                     arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:2236:37
+   |
+23 |             morph_effect.duration = Some(0);
+   |                                     ^^^^^-^
+   |                                          |
+   |                                          this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+23 |             morph_effect.duration = Some(0.0);
+   |                                           ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:2246:50
+     |
+33   |                 let results = light.morph_effect(key.clone(), morph_effect.clone());
+     |                                     ------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:2255:12
+     |
+2255 |     pub fn morph_effect(&self, config: LifxConfig, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::morph_effect_by_selector (line 2269) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:2286:34
+   |
+18 |     morph_effect.duration = Some(0);
+   |                             ---- ^ expected `f64`, found integer
+   |                             |
+   |                             arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:2286:29
+   |
+18 |     morph_effect.duration = Some(0);
+   |                             ^^^^^-^
+   |                                  |
+   |                                  this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+18 |     morph_effect.duration = Some(0.0);
+   |                                   ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:2296:43
+     |
+28   |     lifx::Light::morph_effect_by_selector(key.clone(), format!("all"), morph_effect);
+     |     ------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2300:12
+     |
+2300 |     pub fn morph_effect_by_selector(config: LifxConfig, selector: String, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Err...
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::move_effect_by_selector (line 2391) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:2413:42
+     |
+23   |     lifx::Light::move_effect_by_selector(key.clone(), format!("all"), move_effect);
+     |     ------------------------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2417:12
+     |
+2417 |     pub fn move_effect_by_selector(config: LifxConfig, selector: String, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::move_effect (line 2341) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:2368:49
+     |
+28   |                 let results = light.move_effect(key.clone(), move_effect.clone());
+     |                                     ----------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:2377:12
+     |
+2377 |     pub fn move_effect(&self, config: LifxConfig, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::pulse_effect_by_selector (line 2507) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:2525:25
+   |
+19 |     pulse.period = Some(10);
+   |                    ---- ^^ expected `f64`, found integer
+   |                    |
+   |                    arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:2525:20
+   |
+19 |     pulse.period = Some(10);
+   |                    ^^^^^--^
+   |                         |
+   |                         this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+19 |     pulse.period = Some(10.0);
+   |                           ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:2530:43
+     |
+24   |     lifx::Light::pulse_effect_by_selector(key.clone(), format!("all"), pulse);
+     |     ------------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2534:12
+     |
+2534 |     pub fn pulse_effect_by_selector(config: LifxConfig, selector: String, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Err...
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::pulse_effect (line 2456) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:2479:33
+   |
+24 |             pulse.period = Some(10);
+   |                            ---- ^^ expected `f64`, found integer
+   |                            |
+   |                            arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:2479:28
+   |
+24 |             pulse.period = Some(10);
+   |                            ^^^^^--^
+   |                                 |
+   |                                 this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+24 |             pulse.period = Some(10.0);
+   |                                   ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:2484:50
+     |
+29   |                 let results = light.pulse_effect(key.clone(), pulse.clone());
+     |                                     ------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:2493:12
+     |
+2493 |     pub fn pulse_effect(&self, config: LifxConfig, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::set_state (line 2579) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:2604:47
+     |
+26   |                 let results = light.set_state(key.clone(), state.clone());
+     |                                     --------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:2613:12
+     |
+2613 |     pub fn set_state(&self, config: LifxConfig, state: State) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::set_state_by_selector (line 2627) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:2646:40
+     |
+20   |     lifx::Light::set_state_by_selector(key.clone(), format!("all"), off_state);
+     |     ---------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2650:12
+     |
+2650 |     pub fn set_state_by_selector(config: LifxConfig, selector: String, state: State) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::set_states (line 2697) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:2729:29
+     |
+33   |     lifx::Light::set_states(key.clone(), set_states);
+     |     ----------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2733:12
+     |
+2733 |     pub fn set_states(config: LifxConfig, states: States) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::state_delta_by_selector (line 2783) stdout ----
+error[E0425]: cannot find value `toggle` in this scope
+  --> src/lib.rs:2803:71
+   |
+21 |     lifx::Light::state_delta_by_selector(key.clone(), format!("all"), toggle);
+   |                                                                       ^^^^^^ not found in this scope
+
+error[E0308]: mismatched types
+  --> src/lib.rs:2799:27
+   |
+17 |     delta.duration = Some(0);
+   |                      ---- ^ expected `f64`, found integer
+   |                      |
+   |                      arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:2799:22
+   |
+17 |     delta.duration = Some(0);
+   |                      ^^^^^-^
+   |                           |
+   |                           this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+17 |     delta.duration = Some(0.0);
+   |                            ++
+
+error[E0308]: mismatched types
+    --> src/lib.rs:2803:42
+     |
+21   |     lifx::Light::state_delta_by_selector(key.clone(), format!("all"), toggle);
+     |     ------------------------------------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2807:12
+     |
+2807 |     pub fn state_delta_by_selector(config: LifxConfig, selector: String, delta: StateDelta) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0308, E0425.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::toggle (line 2857) stdout ----
+error[E0425]: cannot find value `clean` in this scope
+  --> src/lib.rs:2881:57
+   |
+25 |                 let results = light.toggle(key.clone(), clean.clone());
+   |                                                         ^^^^^ not found in this scope
+
+error[E0308]: mismatched types
+    --> src/lib.rs:2881:44
+     |
+25   |                 let results = light.toggle(key.clone(), clean.clone());
+     |                                     ------ ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |                                     |
+     |                                     arguments to this method are incorrect
+     |
+note: method defined here
+    --> /root/repo/src/lib.rs:2890:12
+     |
+2890 |     pub fn toggle(&self, config: LifxConfig, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0308, E0425.
+For more information about an error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Light::toggle_by_selector (line 2904) stdout ----
+error[E0308]: mismatched types
+    --> src/lib.rs:2923:37
+     |
+20   |     lifx::Light::toggle_by_selector(key.clone(), format!("all"), toggle);
+     |     ------------------------------- ^^^^^^^^^^^ expected `LifxConfig`, found `String`
+     |     |
+     |     arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /root/repo/src/lib.rs:2927:12
+     |
+2927 |     pub fn toggle_by_selector(config: LifxConfig, selector: String, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
+     |            ^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - MorphEffect::new (line 3761) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:3778:34
+   |
+18 |     morph_effect.duration = Some(0);
+   |                             ---- ^ expected `f64`, found integer
+   |                             |
+   |                             arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:3778:29
+   |
+18 |     morph_effect.duration = Some(0);
+   |                             ^^^^^-^
+   |                                  |
+   |                                  this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+18 |     morph_effect.duration = Some(0.0);
+   |                                   ++
+
+error[E0308]: mismatched types
+  --> src/lib.rs:3781:18
+   |
+21 |     palette.push("red");
+   |             ---- ^^^^^- help: try using a conversion method: `.to_string()`
+   |             |    |
+   |             |    expected `String`, found `&str`
+   |             arguments to this method are incorrect
+   |
+note: method defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/alloc/src/vec/mod.rs:2474:12
+
+error[E0308]: mismatched types
+  --> src/lib.rs:3782:18
+   |
+22 |     palette.push("green");
+   |             ---- ^^^^^^^- help: try using a conversion method: `.to_string()`
+   |             |    |
+   |             |    expected `String`, found `&str`
+   |             arguments to this method are incorrect
+   |
+note: method defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/alloc/src/vec/mod.rs:2474:12
+
+error: aborting due to 3 previous errors
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - PulseEffect::new (line 3856) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:3874:25
+   |
+19 |     pulse.period = Some(10);
+   |                    ---- ^^ expected `f64`, found integer
+   |                    |
+   |                    arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:3874:20
+   |
+19 |     pulse.period = Some(10);
+   |                    ^^^^^--^
+   |                         |
+   |                         this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+19 |     pulse.period = Some(10.0);
+   |                           ++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+---- src/lib.rs - Scene::async_list (line 2995) stdout ----
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tokio`
+ --> src/lib.rs:2997:3
+  |
+3 | #[tokio::main]
+  |   ^^^^^ use of unresolved module or unlinked crate `tokio`
+
+error[E0277]: the `?` operator can only be used in an async function that returns `Result` or `Option` (or another type that implements `FromResidual`)
+  --> src/lib.rs:3011:55
+   |
+4  |   async fn main() {
+   |  _________________-
+5  | |  
+6  | |     let key = "xxx".to_string();
+7  | |     let mut api_endpoints: Vec<String> = Vec::new();
+...  |
+17 | |     let scenes = lifx::Scene::async_list(config).await?;
+   | |                                                       ^ cannot use the `?` operator in an async function that returns `()`
+18 | | }
+   | |_- this function should return `Result` or `Option` to accept `?`
+
+error[E0752]: `main` function is not allowed to be `async`
+ --> src/lib.rs:2998:1
+  |
+4 | async fn main() {
+  | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
+
+error: aborting due to 3 previous errors
+
+Some errors have detailed explanations: E0277, E0433, E0752.
+For more information about an error, try `rustc --explain E0277`.
+Couldn't compile the test.
+---- src/lib.rs - Scene::list (line 3053) stdout ----
+error[E0599]: no function or associated item named `list_all` found for struct `Scene` in the current scope
+  --> src/lib.rs:3068:31
+   |
+16 |     let scenes = lifx::Scene::list_all(config)?;
+   |                               ^^^^^^^^ function or associated item not found in `Scene`
+   |
+help: there is an associated function `list` with a similar name
+   |
+16 -     let scenes = lifx::Scene::list_all(config)?;
+16 +     let scenes = lifx::Scene::list(config)?;
+   |
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0599`.
+Couldn't compile the test.
+---- src/lib.rs - StateDelta::new (line 3474) stdout ----
+error[E0308]: mismatched types
+  --> src/lib.rs:3490:27
+   |
+17 |     delta.duration = Some(0);
+   |                      ---- ^ expected `f64`, found integer
+   |                      |
+   |                      arguments to this enum variant are incorrect
+   |
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> src/lib.rs:3490:22
+   |
+17 |     delta.duration = Some(0);
+   |                      ^^^^^-^
+   |                           |
+   |                           this argument influences the type of `Some`
+note: tuple variant defined here
+  --> /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/option.rs:599:5
+help: use a float literal
+   |
+17 |     delta.duration = Some(0.0);
+   |                            ++
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0308`.
+Couldn't compile the test.
+
+failures:
+    src/lib.rs - (line 103)
+    src/lib.rs - (line 48)
+    src/lib.rs - BreatheEffect::new (line 3578)
+    src/lib.rs - Color::async_validate (line 3125)
+    src/lib.rs - Color::validate (line 3182)
+    src/lib.rs - FlameEffect::new (line 3998)
+    src/lib.rs - Light::async_breathe_effect (line 219)
+    src/lib.rs - Light::async_breathe_effect_by_selector (line 271)
+    src/lib.rs - Light::async_clean (line 350)
+    src/lib.rs - Light::async_clean_by_selector (line 399)
+    src/lib.rs - Light::async_effects_off (line 475)
+    src/lib.rs - Light::async_effects_off_by_selector (line 523)
+    src/lib.rs - Light::async_flame_effect (line 600)
+    src/lib.rs - Light::async_flame_effect_by_selector (line 650)
+    src/lib.rs - Light::async_list_all (line 726)
+    src/lib.rs - Light::async_list_by_selector (line 759)
+    src/lib.rs - Light::async_morph_effect (line 817)
+    src/lib.rs - Light::async_morph_effect_by_selector (line 873)
+    src/lib.rs - Light::async_move_effect (line 951)
+    src/lib.rs - Light::async_move_effect_by_selector (line 1002)
+    src/lib.rs - Light::async_pulse_effect (line 1079)
+    src/lib.rs - Light::async_pulse_effect_by_selector (line 1131)
+    src/lib.rs - Light::async_set_state (line 1213)
+    src/lib.rs - Light::async_set_state_by_selector (line 1262)
+    src/lib.rs - Light::async_set_states (line 1335)
+    src/lib.rs - Light::async_state_delta_by_selector (line 1425)
+    src/lib.rs - Light::async_toggle (line 1502)
+    src/lib.rs - Light::async_toggle_by_selector (line 1550)
+    src/lib.rs - Light::breathe_by_selector_effect (line 1683)
+    src/lib.rs - Light::breathe_effect (line 1632)
+    src/lib.rs - Light::clean (line 1760)
+    src/lib.rs - Light::clean_by_selector (line 1808)
+    src/lib.rs - Light::effects_off (line 1882)
+    src/lib.rs - Light::effects_off_by_selector (line 1929)
+    src/lib.rs - Light::flame_effect (line 2002)
+    src/lib.rs - Light::flame_effect_by_selector (line 2051)
+    src/lib.rs - Light::list_all (line 2124)
+    src/lib.rs - Light::list_by_selector (line 2156)
+    src/lib.rs - Light::morph_effect (line 2214)
+    src/lib.rs - Light::morph_effect_by_selector (line 2269)
+    src/lib.rs - Light::move_effect (line 2341)
+    src/lib.rs - Light::move_effect_by_selector (line 2391)
+    src/lib.rs - Light::pulse_effect (line 2456)
+    src/lib.rs - Light::pulse_effect_by_selector (line 2507)
+    src/lib.rs - Light::set_state (line 2579)
+    src/lib.rs - Light::set_state_by_selector (line 2627)
+    src/lib.rs - Light::set_states (line 2697)
+    src/lib.rs - Light::state_delta_by_selector (line 2783)
+    src/lib.rs - Light::toggle (line 2857)
+    src/lib.rs - Light::toggle_by_selector (line 2904)
+    src/lib.rs - MorphEffect::new (line 3761)
+    src/lib.rs - PulseEffect::new (line 3856)
+    src/lib.rs - Scene::async_list (line 2995)
+    src/lib.rs - Scene::list (line 3053)
+    src/lib.rs - StateDelta::new (line 3474)
+
+test result: FAILED. 6 passed; 55 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.73s
+
+error: doctest failed, to rerun pass `--doc`
