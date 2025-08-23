@@ -4288,7 +4288,7 @@ mod tests {
         effect.duration = Some(10.0);
         effect.power_on = Some(true);
         
-        let palette = effect.palette.as_ref().unwrap();
+        let palette = effect.palette.as_ref().expect("Palette should be Some after being set");
         assert_eq!(palette.len(), 3);
         assert_eq!(palette[0], "red");
         assert_eq!(palette[1], "blue");
@@ -4353,7 +4353,7 @@ mod tests {
         
         states.states = Some(vec![state1, state2]);
         
-        let states_vec = states.states.as_ref().unwrap();
+        let states_vec = states.states.as_ref().expect("States should be Some after being set");
         assert_eq!(states_vec.len(), 2);
         assert_eq!(states_vec[0].power, Some("on".to_string()));
         assert_eq!(states_vec[1].power, Some("off".to_string()));
@@ -4487,7 +4487,7 @@ mod tests {
         };
         
         assert!(results.results.is_some());
-        let results_vec = results.results.unwrap();
+        let results_vec = results.results.expect("Results should be Some after being set");
         assert_eq!(results_vec.len(), 2);
         assert_eq!(results_vec[0].id, "id1");
         assert_eq!(results_vec[1].label, "Light 2");
@@ -4503,6 +4503,74 @@ mod tests {
         
         assert!(results.results.is_none());
         assert!(results.error.is_some());
-        assert_eq!(results.error.unwrap(), "API Error");
+        assert_eq!(results.error.expect("Error should be Some after being set"), "API Error");
+    }
+
+    #[test]
+    fn test_morph_effect_with_none_palette() {
+        let effect = MorphEffect::new();
+        assert!(effect.palette.is_none());
+        
+        // This should not panic - palette is None
+        if let Some(palette) = effect.palette.as_ref() {
+            panic!("Expected None but got Some with {} items", palette.len());
+        }
+    }
+
+    #[test]
+    fn test_states_with_none_states() {
+        let states = States::new();
+        assert!(states.states.is_none());
+        
+        // This should not panic - states is None
+        if let Some(states_vec) = states.states.as_ref() {
+            panic!("Expected None but got Some with {} states", states_vec.len());
+        }
+    }
+
+    #[test]
+    fn test_lifx_results_with_none_results() {
+        let results = LiFxResults {
+            results: None,
+            error: None,
+        };
+        
+        assert!(results.results.is_none());
+        assert!(results.error.is_none());
+        
+        // This should not panic - both fields are None
+        if let Some(results_vec) = results.results {
+            panic!("Expected None but got Some with {} results", results_vec.len());
+        }
+        if let Some(error) = results.error {
+            panic!("Expected None but got Some error: {}", error);
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "Palette should be Some after being set")]
+    fn test_expect_message_for_palette() {
+        let effect = MorphEffect::new();
+        // This will panic with our custom message
+        let _palette = effect.palette.as_ref().expect("Palette should be Some after being set");
+    }
+
+    #[test]
+    #[should_panic(expected = "States should be Some after being set")]
+    fn test_expect_message_for_states() {
+        let states = States::new();
+        // This will panic with our custom message
+        let _states_vec = states.states.as_ref().expect("States should be Some after being set");
+    }
+
+    #[test]
+    #[should_panic(expected = "Results should be Some after being set")]
+    fn test_expect_message_for_results() {
+        let results = LiFxResults {
+            results: None,
+            error: None,
+        };
+        // This will panic with our custom message
+        let _results_vec = results.results.expect("Results should be Some after being set");
     }
 }
