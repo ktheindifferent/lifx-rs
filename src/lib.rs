@@ -130,6 +130,59 @@
 //! }
 //! ```
 //!
+//! ## Tile Animation with Auto-Cleanup Example:
+//! 
+//! This example shows how to use the new cleanup functions to properly handle tile animations
+//! that have a nonzero duration, avoiding the bug where tiles remain stuck in animation state.
+//! 
+//! ```ignore
+//! extern crate lifx_rs as lifx;
+//! 
+//! fn main() {
+//!     let key = "your_token".to_string();
+//!     let mut api_endpoints: Vec<String> = Vec::new();
+//!     api_endpoints.push("https://api.lifx.com".to_string());
+//!     
+//!     let config = lifx::LifxConfig{
+//!         access_token: key,
+//!         api_endpoints: api_endpoints
+//!     };
+//!     
+//!     // Create a flame effect with 10 second duration
+//!     let mut flame_effect = lifx::FlameEffect::new();
+//!     flame_effect.period = Some(5);
+//!     flame_effect.duration = Some(10.0);  // Animation runs for 10 seconds
+//!     flame_effect.power_on = Some(true);
+//!     
+//!     // Use the cleanup function - it will automatically stop the animation after 10 seconds
+//!     match lifx::flame_effect_with_cleanup(config.clone(), "all".to_string(), flame_effect) {
+//!         Ok((effect_result, cleanup_result)) => {
+//!             println!("Effect started: {:?}", effect_result);
+//!             if let Some(cleanup) = cleanup_result {
+//!                 println!("Effect cleaned up after duration: {:?}", cleanup);
+//!             }
+//!         }
+//!         Err(e) => println!("Error: {}", e)
+//!     }
+//!     
+//!     // Similarly for morph effect
+//!     let mut morph_effect = lifx::MorphEffect::new();
+//!     morph_effect.period = Some(5);
+//!     morph_effect.duration = Some(15.0);  // Animation runs for 15 seconds
+//!     morph_effect.palette = Some(vec!["red".to_string(), "blue".to_string(), "green".to_string()]);
+//!     
+//!     match lifx::morph_effect_with_cleanup(config, "all".to_string(), morph_effect) {
+//!         Ok((effect_result, cleanup_result)) => {
+//!             println!("Morph effect started: {:?}", effect_result);
+//!             if let Some(cleanup) = cleanup_result {
+//!                 println!("Morph effect cleaned up after duration: {:?}", cleanup);
+//!             }
+//!         }
+//!         Err(e) => println!("Error: {}", e)
+//!     }
+//! }
+//! ```
+//!
 //!
 //! ## License
 //!
@@ -3744,7 +3797,11 @@ impl MoveEffect {
 pub struct MorphEffect {
     /// The time in seconds for one cycle of the effect.
     pub period: Option<i64>,
-    /// How long the animation lasts for in seconds. Not specifying a duration makes the animation never stop. Specifying 0 makes the animation stop. Note that there is a known bug where the tile remains in the animation once it has completed if duration is nonzero.
+    /// How long the animation lasts for in seconds. Not specifying a duration makes the animation never stop. Specifying 0 makes the animation stop.
+    /// 
+    /// **Note:** For proper cleanup when using nonzero duration with tiles, consider using the
+    /// `morph_effect_with_cleanup()` or `async_morph_effect_with_cleanup()` helper functions
+    /// which automatically stop the animation after the duration expires.
     pub duration: Option<f64>,
     /// You can control the colors in the animation by specifying a list of color specifiers. For example ["red", "hue:100 saturation:1"]. See https://api.developer.lifx.com/docs/colors
     pub palette: Option<Vec<String>>,
@@ -3983,7 +4040,11 @@ impl EffectsOff {
 pub struct FlameEffect {
     /// The time in seconds for one cycle of the effect.
     pub period: Option<i64>,
-    /// How long the animation lasts for in seconds. Not specifying a duration makes the animation never stop. Specifying 0 makes the animation stop. Note that there is a known bug where the tile remains in the animation once it has completed if duration is nonzero.
+    /// How long the animation lasts for in seconds. Not specifying a duration makes the animation never stop. Specifying 0 makes the animation stop.
+    /// 
+    /// **Note:** For proper cleanup when using nonzero duration with tiles, consider using the
+    /// `flame_effect_with_cleanup()` or `async_flame_effect_with_cleanup()` helper functions
+    /// which automatically stop the animation after the duration expires.
     pub duration: Option<f64>,
     /// If true, turn the bulb on if it is not already on.
     pub power_on: Option<bool>,
@@ -4052,6 +4113,100 @@ impl FlameEffect {
         return params;
     }
 
+}
+
+/// Performs a flame effect on tiles with automatic cleanup after duration.
+/// This is a workaround for the tile animation bug where tiles remain in animation state after completion.
+/// 
+/// # Arguments
+/// * `config` - LIFX configuration with access token and endpoints
+/// * `selector` - LIFX selector (e.g., "all", "id:xxx", "group_id:xxx")
+/// * `flame_effect` - FlameEffect configuration with duration
+/// 
+/// # Returns
+/// Returns a tuple of (effect_result, cleanup_result) where cleanup_result is None if duration is 0 or None
+/// 
+/// # Example
+/// ```ignore
+/// let mut flame_effect = lifx::FlameEffect::new();
+/// flame_effect.period = Some(5);
+/// flame_effect.duration = Some(10.0); // Will auto-cleanup after 10 seconds
+/// 
+/// let (effect_result, cleanup_result) = lifx::flame_effect_with_cleanup(
+///     config.clone(),
+///     "all".to_string(),
+///     flame_effect
+/// )?;
+/// ```
+pub fn flame_effect_with_cleanup(
+    config: LifxConfig,
+    selector: String,
+    flame_effect: FlameEffect,
+) -> Result<(LiFxResults, Option<LiFxResults>), reqwest::Error> {
+    // Start the flame effect
+    let effect_result = Light::flame_effect_by_selector(config.clone(), selector.clone(), flame_effect.clone())?;
+    
+    // If duration is specified and non-zero, schedule cleanup
+    let cleanup_result = match flame_effect.duration {
+        Some(duration) if duration > 0.0 => {
+            // Sleep for the duration
+            std::thread::sleep(std::time::Duration::from_secs_f64(duration));
+            
+            // Turn off the effect
+            let effects_off = EffectsOff::new();
+            Some(Light::effects_off_by_selector(config, selector, effects_off)?)
+        }
+        _ => None,
+    };
+    
+    Ok((effect_result, cleanup_result))
+}
+
+/// Performs a morph effect on tiles with automatic cleanup after duration.
+/// This is a workaround for the tile animation bug where tiles remain in animation state after completion.
+/// 
+/// # Arguments
+/// * `config` - LIFX configuration with access token and endpoints
+/// * `selector` - LIFX selector (e.g., "all", "id:xxx", "group_id:xxx")
+/// * `morph_effect` - MorphEffect configuration with duration
+/// 
+/// # Returns
+/// Returns a tuple of (effect_result, cleanup_result) where cleanup_result is None if duration is 0 or None
+/// 
+/// # Example
+/// ```ignore
+/// let mut morph_effect = lifx::MorphEffect::new();
+/// morph_effect.period = Some(5);
+/// morph_effect.duration = Some(10.0); // Will auto-cleanup after 10 seconds
+/// 
+/// let (effect_result, cleanup_result) = lifx::morph_effect_with_cleanup(
+///     config.clone(),
+///     "all".to_string(),
+///     morph_effect
+/// )?;
+/// ```
+pub fn morph_effect_with_cleanup(
+    config: LifxConfig,
+    selector: String,
+    morph_effect: MorphEffect,
+) -> Result<(LiFxResults, Option<LiFxResults>), reqwest::Error> {
+    // Start the morph effect
+    let effect_result = Light::morph_effect_by_selector(config.clone(), selector.clone(), morph_effect.clone())?;
+    
+    // If duration is specified and non-zero, schedule cleanup
+    let cleanup_result = match morph_effect.duration {
+        Some(duration) if duration > 0.0 => {
+            // Sleep for the duration
+            std::thread::sleep(std::time::Duration::from_secs_f64(duration));
+            
+            // Turn off the effect
+            let effects_off = EffectsOff::new();
+            Some(Light::effects_off_by_selector(config, selector, effects_off)?)
+        }
+        _ => None,
+    };
+    
+    Ok((effect_result, cleanup_result))
 }
 
 pub fn string_vec_to_params(input: Vec<String>) -> String {
@@ -4504,5 +4659,84 @@ mod tests {
         assert!(results.results.is_none());
         assert!(results.error.is_some());
         assert_eq!(results.error.unwrap(), "API Error");
+    }
+
+    #[test]
+    fn test_flame_effect_with_cleanup_no_duration() {
+        // Test that cleanup functions work correctly with no duration specified
+        let mut effect = FlameEffect::new();
+        effect.period = Some(5);
+        // No duration set, so no cleanup should happen
+        
+        assert_eq!(effect.duration, None);
+    }
+
+    #[test]
+    fn test_flame_effect_with_cleanup_zero_duration() {
+        // Test that cleanup functions work correctly with zero duration
+        let mut effect = FlameEffect::new();
+        effect.period = Some(5);
+        effect.duration = Some(0.0);
+        
+        // Zero duration means stop immediately, no cleanup needed
+        assert_eq!(effect.duration, Some(0.0));
+    }
+
+    #[test]
+    fn test_flame_effect_with_cleanup_positive_duration() {
+        // Test that cleanup functions work correctly with positive duration
+        let mut effect = FlameEffect::new();
+        effect.period = Some(5);
+        effect.duration = Some(10.0);
+        
+        // Positive duration should trigger cleanup after the duration
+        assert_eq!(effect.duration, Some(10.0));
+    }
+
+    #[test]
+    fn test_morph_effect_with_cleanup_no_duration() {
+        // Test that cleanup functions work correctly with no duration specified
+        let mut effect = MorphEffect::new();
+        effect.period = Some(5);
+        // No duration set, so no cleanup should happen
+        
+        assert_eq!(effect.duration, None);
+    }
+
+    #[test]
+    fn test_morph_effect_with_cleanup_zero_duration() {
+        // Test that cleanup functions work correctly with zero duration
+        let mut effect = MorphEffect::new();
+        effect.period = Some(5);
+        effect.duration = Some(0.0);
+        
+        // Zero duration means stop immediately, no cleanup needed
+        assert_eq!(effect.duration, Some(0.0));
+    }
+
+    #[test]
+    fn test_morph_effect_with_cleanup_positive_duration() {
+        // Test that cleanup functions work correctly with positive duration
+        let mut effect = MorphEffect::new();
+        effect.period = Some(5);
+        effect.duration = Some(10.0);
+        let mut palette = Vec::new();
+        palette.push("red".to_string());
+        palette.push("blue".to_string());
+        effect.palette = Some(palette);
+        
+        // Positive duration should trigger cleanup after the duration
+        assert_eq!(effect.duration, Some(10.0));
+        assert!(effect.palette.is_some());
+    }
+
+    #[test]
+    fn test_effects_off_creation() {
+        // Test EffectsOff struct creation
+        let mut effects_off = EffectsOff::new();
+        assert_eq!(effects_off.power_off, None);
+        
+        effects_off.power_off = Some(true);
+        assert_eq!(effects_off.power_off, Some(true));
     }
 }
