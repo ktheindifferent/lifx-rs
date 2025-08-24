@@ -18,6 +18,9 @@ byteorder = "1.4.3"
 thiserror = "1.0.40"
 
 serde = { version = "1.0.162", features = ["derive"] }
+tokio = { version = "1.28", features = ["rt", "time", "macros"] }
+futures = "0.3.28"
+async-trait = "0.1.68"
 
 [features]
 default = ["reqwest/default-tls", "trust-dns-resolver/dns-over-native-tls"]
