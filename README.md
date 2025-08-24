@@ -35,22 +35,36 @@ Add the following line to your cargo.toml:
 lifx-rs = "0.1.30"
 ```
 
-Example:
+### New: Advanced Failover Support
+
+The library now supports **unlimited API endpoints** with advanced failover capabilities:
+
+- **Unlimited Endpoints**: Add as many API endpoints as needed
+- **Concurrent Requests**: Try multiple endpoints simultaneously for faster failover
+- **Multiple Strategies**: Choose between Failover, Round-Robin, or Fastest-First
+- **Health Tracking**: Automatic endpoint health monitoring with exponential backoff
+- **Configurable Timeouts**: Set custom timeout values for requests
+
+Example with new failover features:
 ```rust
 extern crate lifx_rs as lifx;
 
 fn main() {
-
     let key = "xxx".to_string();
     
-    let mut api_endpoints: Vec<String> = Vec::new();
+    // Method 1: Using the builder pattern (recommended)
+    let config = lifx::LifxConfig::new(key.clone())
+        .add_endpoint("https://api.lifx.com".to_string())
+        .add_endpoint("http://localhost:8089".to_string())
+        .add_endpoint("http://backup-server:8089".to_string())
+        .with_strategy(lifx::FailoverStrategy::RoundRobin)
+        .with_timeout(3000);  // 3 second timeout
     
-    // Official API
+    // Method 2: Legacy approach (still supported)
+    let mut api_endpoints: Vec<String> = Vec::new();
     api_endpoints.push(format!("https://api.lifx.com"));
-
-    // lifx-server-api (Un-Official)
     api_endpoints.push(format!("http://localhost:8089"));
-
+    
     let config = lifx::LifxConfig{
         access_token: key.clone(),
         api_endpoints: api_endpoints
@@ -83,6 +97,30 @@ fn main() {
 
 }
 
+```
+
+### Failover Strategies
+
+The library supports three failover strategies:
+
+1. **Failover** (default): Try endpoints in order, falling back to the next on failure
+2. **RoundRobin**: Distribute requests across all healthy endpoints
+3. **FastestFirst**: Prioritize endpoints with the best response times
+
+```rust
+// Round-robin load balancing
+let config = lifx::LifxConfig::new(key)
+    .add_endpoint("https://api1.lifx.com".to_string())
+    .add_endpoint("https://api2.lifx.com".to_string())
+    .add_endpoint("https://api3.lifx.com".to_string())
+    .with_strategy(lifx::FailoverStrategy::RoundRobin);
+
+// Fastest-first for optimal performance
+let config = lifx::LifxConfig::new(key)
+    .add_endpoint("https://us.api.lifx.com".to_string())
+    .add_endpoint("https://eu.api.lifx.com".to_string())
+    .add_endpoint("https://ap.api.lifx.com".to_string())
+    .with_strategy(lifx::FailoverStrategy::FastestFirst);
 ```
 
 

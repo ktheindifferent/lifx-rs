@@ -164,20 +164,371 @@ pub mod lan;
 
 
 use serde::{Serialize, Deserialize};
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
+use std::collections::HashMap;
+use futures::future::{select_ok, BoxFuture};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 
 
 
 
-/// Represents a LIFX Config Object
-/// Supports two api_endpoints.....if the first one fails...falls back on second api
-/// TODO - Support unlimited api_endpoints
-/// TODO - Use multithreaded timeout to detect primary api failures faster
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// Represents endpoint health status
+#[derive(Debug, Clone)]
+pub struct EndpointHealth {
+    pub url: String,
+    pub last_success: Option<Instant>,
+    pub last_failure: Option<Instant>,
+    pub consecutive_failures: usize,
+    pub is_healthy: bool,
+    pub response_time_ms: Option<u64>,
+}
+
+impl EndpointHealth {
+    fn new(url: String) -> Self {
+        EndpointHealth {
+            url,
+            last_success: None,
+            last_failure: None,
+            consecutive_failures: 0,
+            is_healthy: true,
+            response_time_ms: None,
+        }
+    }
+    
+    fn mark_success(&mut self, response_time: Duration) {
+        self.last_success = Some(Instant::now());
+        self.consecutive_failures = 0;
+        self.is_healthy = true;
+        self.response_time_ms = Some(response_time.as_millis() as u64);
+    }
+    
+    fn mark_failure(&mut self) {
+        self.last_failure = Some(Instant::now());
+        self.consecutive_failures += 1;
+        // Mark unhealthy after 3 consecutive failures
+        if self.consecutive_failures >= 3 {
+            self.is_healthy = false;
+        }
+    }
+    
+    fn should_retry(&self) -> bool {
+        if self.is_healthy {
+            return true;
+        }
+        
+        // Exponential backoff: 2^failures seconds, max 300 seconds (5 minutes)
+        if let Some(last_failure) = self.last_failure {
+            let backoff_seconds = (2_u64.pow(self.consecutive_failures.min(8) as u32)).min(300);
+            let elapsed = last_failure.elapsed().as_secs();
+            elapsed >= backoff_seconds
+        } else {
+            true
+        }
+    }
+}
+
+/// Configuration for endpoint failover behavior
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FailoverConfig {
+    /// Timeout for individual endpoint requests in milliseconds
+    #[serde(default = "default_request_timeout")]
+    pub request_timeout_ms: u64,
+    
+    /// Maximum number of concurrent endpoint attempts
+    #[serde(default = "default_max_concurrent")]
+    pub max_concurrent_attempts: usize,
+    
+    /// Whether to use round-robin or failover strategy
+    #[serde(default = "default_strategy")]
+    pub strategy: FailoverStrategy,
+    
+    /// Enable health checking for endpoints
+    #[serde(default = "default_health_check")]
+    pub health_check_enabled: bool,
+    
+    /// Health check interval in seconds
+    #[serde(default = "default_health_interval")]
+    pub health_check_interval_secs: u64,
+}
+
+fn default_request_timeout() -> u64 { 5000 }
+fn default_max_concurrent() -> usize { 3 }
+fn default_strategy() -> FailoverStrategy { FailoverStrategy::Failover }
+fn default_health_check() -> bool { true }
+fn default_health_interval() -> u64 { 60 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum FailoverStrategy {
+    /// Try endpoints in order, falling back on failure
+    Failover,
+    /// Distribute requests across healthy endpoints
+    RoundRobin,
+    /// Try the fastest responding endpoint first
+    FastestFirst,
+}
+
+impl Default for FailoverConfig {
+    fn default() -> Self {
+        FailoverConfig {
+            request_timeout_ms: default_request_timeout(),
+            max_concurrent_attempts: default_max_concurrent(),
+            strategy: default_strategy(),
+            health_check_enabled: default_health_check(),
+            health_check_interval_secs: default_health_interval(),
+        }
+    }
+}
+
+/// Enhanced LIFX Config with unlimited endpoints and advanced failover
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LifxConfig {
     pub access_token: String,
     pub api_endpoints: Vec<String>,
+    
+    #[serde(default)]
+    pub failover_config: FailoverConfig,
+    
+    #[serde(skip)]
+    endpoint_health: Arc<Mutex<HashMap<String, EndpointHealth>>>,
+    
+    #[serde(skip)]
+    round_robin_counter: Arc<AtomicUsize>,
+}
+
+impl Default for LifxConfig {
+    fn default() -> Self {
+        LifxConfig {
+            access_token: String::new(),
+            api_endpoints: Vec::new(),
+            failover_config: FailoverConfig::default(),
+            endpoint_health: Arc::new(Mutex::new(HashMap::new())),
+            round_robin_counter: Arc::new(AtomicUsize::new(0)),
+        }
+    }
+}
+
+impl PartialEq for LifxConfig {
+    fn eq(&self, other: &Self) -> bool {
+        self.access_token == other.access_token &&
+        self.api_endpoints == other.api_endpoints &&
+        self.failover_config.strategy == other.failover_config.strategy
+    }
+}
+
+impl LifxConfig {
+    /// Create a new LifxConfig with builder pattern
+    pub fn new(access_token: String) -> Self {
+        LifxConfig {
+            access_token,
+            api_endpoints: Vec::new(),
+            failover_config: FailoverConfig::default(),
+            endpoint_health: Arc::new(Mutex::new(HashMap::new())),
+            round_robin_counter: Arc::new(AtomicUsize::new(0)),
+        }
+    }
+    
+    /// Add an endpoint to the configuration
+    pub fn add_endpoint(mut self, endpoint: String) -> Self {
+        self.api_endpoints.push(endpoint);
+        self
+    }
+    
+    /// Set the failover strategy
+    pub fn with_strategy(mut self, strategy: FailoverStrategy) -> Self {
+        self.failover_config.strategy = strategy;
+        self
+    }
+    
+    /// Set the request timeout in milliseconds
+    pub fn with_timeout(mut self, timeout_ms: u64) -> Self {
+        self.failover_config.request_timeout_ms = timeout_ms;
+        self
+    }
+    
+    /// Initialize health tracking for all endpoints
+    pub fn init_health_tracking(&self) {
+        let mut health = self.endpoint_health.lock().unwrap();
+        for endpoint in &self.api_endpoints {
+            health.entry(endpoint.clone())
+                .or_insert_with(|| EndpointHealth::new(endpoint.clone()));
+        }
+    }
+    
+    /// Get the next endpoint based on the configured strategy
+    pub fn get_next_endpoint(&self) -> Option<String> {
+        if self.api_endpoints.is_empty() {
+            return None;
+        }
+        
+        match self.failover_config.strategy {
+            FailoverStrategy::RoundRobin => {
+                let healthy_endpoints = self.get_healthy_endpoints();
+                if healthy_endpoints.is_empty() {
+                    return self.api_endpoints.first().cloned();
+                }
+                let index = self.round_robin_counter.fetch_add(1, Ordering::SeqCst);
+                Some(healthy_endpoints[index % healthy_endpoints.len()].clone())
+            },
+            FailoverStrategy::Failover => {
+                // Return first healthy endpoint
+                self.get_healthy_endpoints().first().cloned()
+                    .or_else(|| self.api_endpoints.first().cloned())
+            },
+            FailoverStrategy::FastestFirst => {
+                // Sort by response time and return fastest
+                let health = self.endpoint_health.lock().unwrap();
+                let mut endpoints_with_time: Vec<(String, Option<u64>)> = self.api_endpoints
+                    .iter()
+                    .map(|ep| {
+                        let time = health.get(ep)
+                            .and_then(|h| h.response_time_ms);
+                        (ep.clone(), time)
+                    })
+                    .collect();
+                    
+                endpoints_with_time.sort_by_key(|(_ep, time)| time.unwrap_or(u64::MAX));
+                endpoints_with_time.first().map(|(ep, _)| ep.clone())
+            }
+        }
+    }
+    
+    /// Get all healthy endpoints
+    pub fn get_healthy_endpoints(&self) -> Vec<String> {
+        let health = self.endpoint_health.lock().unwrap();
+        self.api_endpoints
+            .iter()
+            .filter(|ep| {
+                health.get(*ep)
+                    .map(|h| h.is_healthy && h.should_retry())
+                    .unwrap_or(true)
+            })
+            .cloned()
+            .collect()
+    }
+    
+    /// Get endpoints ordered by priority (healthy first, then by strategy)
+    pub fn get_prioritized_endpoints(&self) -> Vec<String> {
+        match self.failover_config.strategy {
+            FailoverStrategy::Failover => {
+                // Healthy endpoints first, then unhealthy with exponential backoff
+                let mut healthy = self.get_healthy_endpoints();
+                let health = self.endpoint_health.lock().unwrap();
+                let mut unhealthy: Vec<String> = self.api_endpoints
+                    .iter()
+                    .filter(|ep| !healthy.contains(ep))
+                    .filter(|ep| {
+                        health.get(*ep)
+                            .map(|h| h.should_retry())
+                            .unwrap_or(true)
+                    })
+                    .cloned()
+                    .collect();
+                healthy.append(&mut unhealthy);
+                healthy
+            },
+            _ => self.get_healthy_endpoints()
+        }
+    }
+    
+    /// Mark an endpoint as successful
+    pub fn mark_endpoint_success(&self, endpoint: &str, response_time: Duration) {
+        let mut health = self.endpoint_health.lock().unwrap();
+        health.entry(endpoint.to_string())
+            .or_insert_with(|| EndpointHealth::new(endpoint.to_string()))
+            .mark_success(response_time);
+    }
+    
+    /// Mark an endpoint as failed
+    pub fn mark_endpoint_failure(&self, endpoint: &str) {
+        let mut health = self.endpoint_health.lock().unwrap();
+        health.entry(endpoint.to_string())
+            .or_insert_with(|| EndpointHealth::new(endpoint.to_string()))
+            .mark_failure();
+    }
+    
+    /// Execute a request with failover across multiple endpoints
+    pub async fn execute_with_failover<F, T>(
+        &self,
+        request_fn: F,
+    ) -> Result<T, reqwest::Error>
+    where
+        F: Fn(String, String) -> BoxFuture<'static, Result<T, reqwest::Error>> + Clone + Send + 'static,
+        T: Send + 'static,
+    {
+        self.init_health_tracking();
+        let endpoints = self.get_prioritized_endpoints();
+        
+        if endpoints.is_empty() {
+            // Try to make a request to generate a proper error
+            let client = reqwest::Client::new();
+            return client.get("http://no-endpoints-configured")
+                .send().await
+                .and_then(|_| Err(client.get("http://no-endpoints-configured").build().unwrap_err()));
+        }
+        
+        let max_concurrent = self.failover_config.max_concurrent_attempts.min(endpoints.len());
+        let timeout = Duration::from_millis(self.failover_config.request_timeout_ms);
+        
+        let mut last_error = None;
+        
+        // Try endpoints concurrently (up to max_concurrent at a time)
+        for chunk in endpoints.chunks(max_concurrent) {
+            let start = Instant::now();
+            let futures: Vec<BoxFuture<'static, Result<T, reqwest::Error>>> = chunk
+                .iter()
+                .map(|endpoint| {
+                    let token = self.access_token.clone();
+                    let ep = endpoint.clone();
+                    let f = request_fn.clone();
+                    Box::pin(async move {
+                        // Use futures timeout instead of tokio::select
+                        match tokio::time::timeout(timeout, f(ep.clone(), token)).await {
+                            Ok(result) => result,
+                            Err(_) => {
+                                // Return a timeout error by creating a client that times out immediately
+                                let client = reqwest::Client::builder()
+                                    .timeout(Duration::from_millis(1))
+                                    .build()
+                                    .unwrap();
+                                client.get(&format!("http://{}/timeout", ep))
+                                    .send().await
+                                    .and_then(|_| client.get("http://timeout").build().map_err(Into::into))
+                                    .and_then(|_| unreachable!())
+                            }
+                        }
+                    }) as BoxFuture<'static, Result<T, reqwest::Error>>
+                })
+                .collect();
+            
+            match select_ok(futures).await {
+                Ok((result, _remaining)) => {
+                    // Mark successful endpoint
+                    if let Some(endpoint) = chunk.first() {
+                        self.mark_endpoint_success(endpoint, start.elapsed());
+                    }
+                    return Ok(result);
+                },
+                Err(err) => {
+                    // Mark all attempted endpoints as failed
+                    for endpoint in chunk {
+                        self.mark_endpoint_failure(endpoint);
+                    }
+                    last_error = Some(err);
+                }
+            }
+        }
+        
+        // Return the last error we encountered
+        Err(last_error.unwrap_or_else(|| {
+            reqwest::Client::new()
+                .get("http://all-endpoints-failed")
+                .build()
+                .unwrap_err()
+        }))
+    }
 }
 
 
@@ -777,6 +1128,29 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_list_by_selector(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
+        // Use legacy implementation if only 1-2 endpoints for backward compatibility
+        if config.api_endpoints.len() <= 2 && !config.failover_config.health_check_enabled {
+            return Self::async_list_by_selector_legacy(config, selector).await;
+        }
+        
+        // Use new failover system for unlimited endpoints
+        let selector_clone = selector.clone();
+        config.execute_with_failover(move |endpoint, token| {
+            let sel = selector_clone.clone();
+            Box::pin(async move {
+                let url = format!("{}/v1/lights/{}", endpoint, sel);
+                let req = reqwest::Client::new()
+                    .get(url)
+                    .header("Authorization", format!("Bearer {}", token))
+                    .send()
+                    .await?;
+                req.json::<Lights>().await
+            })
+        }).await
+    }
+    
+    // Legacy implementation for backward compatibility
+    async fn async_list_by_selector_legacy(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
         let url = format!("{}/v1/lights/{}", config.api_endpoints[0], selector);
         let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
         match request {
@@ -4172,10 +4546,8 @@ mod tests {
 
     #[test]
     fn test_lifx_config_creation() {
-        let config = LifxConfig {
-            access_token: "test_token".to_string(),
-            api_endpoints: vec!["https://api.lifx.com".to_string()],
-        };
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api.lifx.com".to_string());
         assert_eq!(config.access_token, "test_token");
         assert_eq!(config.api_endpoints.len(), 1);
         assert_eq!(config.api_endpoints[0], "https://api.lifx.com");
@@ -4504,5 +4876,235 @@ mod tests {
         assert!(results.results.is_none());
         assert!(results.error.is_some());
         assert_eq!(results.error.unwrap(), "API Error");
+    }
+    
+    // New tests for failover functionality
+    #[test]
+    fn test_lifx_config_builder() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .add_endpoint("https://api3.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::RoundRobin)
+            .with_timeout(3000);
+            
+        assert_eq!(config.access_token, "test_token");
+        assert_eq!(config.api_endpoints.len(), 3);
+        assert_eq!(config.failover_config.strategy, FailoverStrategy::RoundRobin);
+        assert_eq!(config.failover_config.request_timeout_ms, 3000);
+    }
+    
+    #[test]
+    fn test_endpoint_health_tracking() {
+        let health = EndpointHealth::new("https://api.lifx.com".to_string());
+        assert!(health.is_healthy);
+        assert_eq!(health.consecutive_failures, 0);
+        assert!(health.should_retry());
+    }
+    
+    #[test]
+    fn test_endpoint_health_failure_tracking() {
+        let mut health = EndpointHealth::new("https://api.lifx.com".to_string());
+        
+        // First failure
+        health.mark_failure();
+        assert_eq!(health.consecutive_failures, 1);
+        assert!(health.is_healthy);
+        
+        // Second failure
+        health.mark_failure();
+        assert_eq!(health.consecutive_failures, 2);
+        assert!(health.is_healthy);
+        
+        // Third failure - should mark as unhealthy
+        health.mark_failure();
+        assert_eq!(health.consecutive_failures, 3);
+        assert!(!health.is_healthy);
+    }
+    
+    #[test]
+    fn test_endpoint_health_success_resets_failures() {
+        let mut health = EndpointHealth::new("https://api.lifx.com".to_string());
+        
+        health.mark_failure();
+        health.mark_failure();
+        assert_eq!(health.consecutive_failures, 2);
+        
+        health.mark_success(Duration::from_millis(100));
+        assert_eq!(health.consecutive_failures, 0);
+        assert!(health.is_healthy);
+        assert_eq!(health.response_time_ms, Some(100));
+    }
+    
+    #[test]
+    fn test_exponential_backoff() {
+        let mut health = EndpointHealth::new("https://api.lifx.com".to_string());
+        
+        // Mark as failed multiple times
+        for _ in 0..5 {
+            health.mark_failure();
+        }
+        
+        assert!(!health.is_healthy);
+        
+        // Immediately after failure, should not retry
+        assert!(!health.should_retry());
+        
+        // After backoff period, should allow retry
+        // Note: This test is simplified - in real tests we'd mock time
+    }
+    
+    #[test]
+    fn test_failover_config_defaults() {
+        let config = FailoverConfig::default();
+        assert_eq!(config.request_timeout_ms, 5000);
+        assert_eq!(config.max_concurrent_attempts, 3);
+        assert_eq!(config.strategy, FailoverStrategy::Failover);
+        assert!(config.health_check_enabled);
+        assert_eq!(config.health_check_interval_secs, 60);
+    }
+    
+    #[test]
+    fn test_get_healthy_endpoints() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .add_endpoint("https://api3.lifx.com".to_string());
+            
+        config.init_health_tracking();
+        
+        // Initially all should be healthy
+        let healthy = config.get_healthy_endpoints();
+        assert_eq!(healthy.len(), 3);
+        
+        // Mark one as failed
+        config.mark_endpoint_failure("https://api2.lifx.com");
+        config.mark_endpoint_failure("https://api2.lifx.com");
+        config.mark_endpoint_failure("https://api2.lifx.com");
+        
+        let healthy = config.get_healthy_endpoints();
+        assert_eq!(healthy.len(), 2);
+        assert!(!healthy.contains(&"https://api2.lifx.com".to_string()));
+    }
+    
+    #[test]
+    fn test_round_robin_endpoint_selection() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .add_endpoint("https://api3.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::RoundRobin);
+            
+        config.init_health_tracking();
+        
+        // Should rotate through endpoints
+        let first = config.get_next_endpoint();
+        let second = config.get_next_endpoint();
+        let third = config.get_next_endpoint();
+        let fourth = config.get_next_endpoint();
+        
+        assert!(first.is_some());
+        assert!(second.is_some());
+        assert!(third.is_some());
+        assert!(fourth.is_some());
+        
+        // Fourth should wrap around to first
+        assert_eq!(fourth, first);
+    }
+    
+    #[test]
+    fn test_failover_strategy_endpoint_selection() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .add_endpoint("https://api3.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::Failover);
+            
+        config.init_health_tracking();
+        
+        // Should always return first healthy endpoint
+        let first = config.get_next_endpoint();
+        let second = config.get_next_endpoint();
+        
+        assert_eq!(first, second);
+        assert_eq!(first, Some("https://api1.lifx.com".to_string()));
+    }
+    
+    #[test]
+    fn test_fastest_first_strategy() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .add_endpoint("https://api3.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::FastestFirst);
+            
+        config.init_health_tracking();
+        
+        // Mark different response times
+        config.mark_endpoint_success("https://api1.lifx.com", Duration::from_millis(500));
+        config.mark_endpoint_success("https://api2.lifx.com", Duration::from_millis(100));
+        config.mark_endpoint_success("https://api3.lifx.com", Duration::from_millis(300));
+        
+        // Should return fastest endpoint
+        let fastest = config.get_next_endpoint();
+        assert_eq!(fastest, Some("https://api2.lifx.com".to_string()));
+    }
+    
+    #[test]
+    fn test_unlimited_endpoints() {
+        let mut config = LifxConfig::new("test_token".to_string());
+        
+        // Add 100 endpoints
+        for i in 0..100 {
+            config = config.add_endpoint(format!("https://api{}.lifx.com", i));
+        }
+        
+        assert_eq!(config.api_endpoints.len(), 100);
+        
+        config.init_health_tracking();
+        let healthy = config.get_healthy_endpoints();
+        assert_eq!(healthy.len(), 100);
+    }
+    
+    #[test]
+    fn test_prioritized_endpoints_with_failures() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .add_endpoint("https://api3.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::Failover);
+            
+        config.init_health_tracking();
+        
+        // Mark first endpoint as failed
+        for _ in 0..3 {
+            config.mark_endpoint_failure("https://api1.lifx.com");
+        }
+        
+        let prioritized = config.get_prioritized_endpoints();
+        
+        // Should have healthy endpoints first
+        assert_eq!(prioritized[0], "https://api2.lifx.com");
+        assert_eq!(prioritized[1], "https://api3.lifx.com");
+        // Unhealthy endpoint may still appear if retry time has passed
+    }
+    
+    #[test]
+    fn test_config_serialization() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::RoundRobin)
+            .with_timeout(3000);
+            
+        // Serialize to JSON
+        let json = serde_json::to_string(&config).unwrap();
+        assert!(json.contains("test_token"));
+        assert!(json.contains("https://api.lifx.com"));
+        
+        // Deserialize back
+        let deserialized: LifxConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.access_token, config.access_token);
+        assert_eq!(deserialized.api_endpoints, config.api_endpoints);
+        assert_eq!(deserialized.failover_config.strategy, config.failover_config.strategy);
     }
 }

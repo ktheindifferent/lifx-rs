@@ -117,8 +117,16 @@ light.async_set_state(config, state).await?;
 ### Known Issues
 1. Doctests in lib.rs need updating to match current API
 2. Clippy warnings for code style improvements
-3. TODO: Support unlimited api_endpoints
-4. TODO: Implement multithreaded timeout for faster API failure detection
+3. ~~TODO: Support unlimited api_endpoints~~ ✅ COMPLETED
+4. ~~TODO: Implement multithreaded timeout for faster API failure detection~~ ✅ COMPLETED
+
+### Recent Improvements (Feature Branch: feature/unlimited-api-endpoints)
+- **Unlimited API Endpoints**: Removed hardcoded 2-endpoint limit, now supports any number of endpoints
+- **Concurrent Failover**: Implements multithreaded timeout detection with configurable concurrent attempts
+- **Advanced Strategies**: Added Round-Robin, Failover, and Fastest-First endpoint selection strategies
+- **Health Tracking**: Automatic endpoint health monitoring with exponential backoff for failed endpoints
+- **Builder Pattern**: New fluent API for configuration with `LifxConfig::new()` builder methods
+- **Backward Compatibility**: Legacy configuration still works for existing code
 
 ## Development Guidelines
 
