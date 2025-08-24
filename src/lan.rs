@@ -187,11 +187,13 @@ where
     T: WriteBytesExt,
 {
     fn write_val(&mut self, v: LifxString) -> Result<(), io::Error> {
+        // Convert string to bytes for safe access
+        let bytes = v.0.as_bytes();
         for idx in 0..32 {
-            if idx >= v.0.len() {
+            if idx >= bytes.len() {
                 self.write_u8(0)?;
             } else {
-                self.write_u8(v.0.chars().nth(idx).unwrap() as u8)?;
+                self.write_u8(bytes[idx])?;
             }
         }
         Ok(())
@@ -2043,5 +2045,72 @@ mod tests {
                 0xFF, 0xAC, 0x0D, 0x00, 0x04, 0x00, 0x00
             ]
         );
+    }
+
+    #[test]
+    fn test_lifx_string_serialization() {
+        use std::io::Cursor;
+        
+        // Test empty string
+        let empty = LifxString::new("");
+        let mut buf = Vec::new();
+        buf.write_val(empty.clone()).unwrap();
+        assert_eq!(buf.len(), 32);
+        assert_eq!(buf, vec![0u8; 32]);
+        
+        // Test reading back empty string
+        let mut cursor = Cursor::new(buf);
+        let read_empty: LifxString = cursor.read_val().unwrap();
+        assert_eq!(read_empty.0, "");
+        
+        // Test short string
+        let short = LifxString::new("Test");
+        let mut buf = Vec::new();
+        buf.write_val(short.clone()).unwrap();
+        assert_eq!(buf.len(), 32);
+        assert_eq!(&buf[0..4], b"Test");
+        assert_eq!(&buf[4..32], &[0u8; 28]);
+        
+        // Test reading back short string
+        let mut cursor = Cursor::new(buf);
+        let read_short: LifxString = cursor.read_val().unwrap();
+        assert_eq!(read_short.0, "Test");
+        
+        // Test exactly 32 byte string (no truncation needed)
+        let exact = LifxString::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
+        let mut buf = Vec::new();
+        buf.write_val(exact.clone()).unwrap();
+        assert_eq!(buf.len(), 32);
+        // String is exactly 32 bytes, no truncation
+        assert_eq!(exact.0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
+        assert_eq!(exact.0.len(), 32);
+        assert_eq!(&buf[0..32], b"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
+        
+        // Test reading back 32 byte string
+        let mut cursor = Cursor::new(buf);
+        let read_exact: LifxString = cursor.read_val().unwrap();
+        assert_eq!(read_exact.0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
+        
+        // Test string longer than 32 (should be truncated by LifxString::new)
+        let long = LifxString::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
+        let mut buf = Vec::new();
+        buf.write_val(long.clone()).unwrap();
+        assert_eq!(buf.len(), 32);
+        // LifxString::new truncates to 32 chars
+        assert_eq!(long.0.len(), 32);
+        assert_eq!(&buf[0..32], long.0.as_bytes());
+        
+        // Test special characters (ASCII only)
+        let special = LifxString::new("Light-01_Test!");
+        let mut buf = Vec::new();
+        buf.write_val(special.clone()).unwrap();
+        assert_eq!(buf.len(), 32);
+        assert_eq!(&buf[0..14], b"Light-01_Test!");
+        assert_eq!(&buf[14..32], &[0u8; 18]);
+        
+        // Test reading back special characters
+        let mut cursor = Cursor::new(buf);
+        let read_special: LifxString = cursor.read_val().unwrap();
+        assert_eq!(read_special.0, "Light-01_Test!");
     }
 }
