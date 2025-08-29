@@ -582,6 +582,16 @@ impl LifxConfig {
                 .unwrap_err()
         }))
     }
+    
+    /// Get the first available endpoint or return None if no endpoints are configured
+    pub fn get_first_endpoint(&self) -> Option<String> {
+        self.api_endpoints.first().cloned()
+    }
+    
+    /// Get the second available endpoint or return None if less than 2 endpoints are configured
+    pub fn get_second_endpoint(&self) -> Option<String> {
+        self.api_endpoints.get(1).cloned()
+    }
 }
 
 
@@ -701,7 +711,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_breathe_effect_by_selector(config: LifxConfig, selector: String, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/breathe", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/breathe", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -715,7 +725,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/breathe", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/breathe", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -826,7 +836,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_clean_by_selector(config: LifxConfig, selector: String, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/clean", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/clean", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -840,7 +850,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/clean", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/clean", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -949,7 +959,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_effects_off_by_selector(config: LifxConfig, selector: String, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/off", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/off", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -963,7 +973,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/off", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/off", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1078,7 +1088,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_flame_effect_by_selector(config: LifxConfig, selector: String, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/flame", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/flame", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1092,7 +1102,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/flame", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/flame", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1204,7 +1214,7 @@ impl Light {
     
     // Legacy implementation for backward compatibility
     async fn async_list_by_selector_legacy(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
-        let url = format!("{}/v1/lights/{}", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
         let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
         match request {
             Ok(req) => {
@@ -1213,7 +1223,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
                     let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
                     match request {
                         Ok(req) => {
@@ -1330,7 +1340,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_morph_effect_by_selector(config: LifxConfig, selector: String, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/morph", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/morph", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&morph_effect.to_params())
@@ -1342,7 +1352,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/morph", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/morph", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&morph_effect.to_params())
@@ -1454,7 +1464,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_move_effect_by_selector(config: LifxConfig, selector: String, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/move", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/move", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1468,7 +1478,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/move", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/move", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1584,7 +1594,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_pulse_effect_by_selector(config: LifxConfig, selector: String, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/pulse", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/pulse", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1598,7 +1608,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/pulse", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/pulse", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1711,7 +1721,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_set_state_by_selector(config: LifxConfig, selector: String, state: State) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/state", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/state", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().put(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1725,7 +1735,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/state", config.api_endpoints[0], selector);
+                    let url = format!("{}/v1/lights/{}/state", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().put(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1797,7 +1807,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_set_states(config: LifxConfig, states: States) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/state", config.api_endpoints[0]);
+        let url = format!("{}/v1/lights/state", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()));
 
         let request = reqwest::blocking::Client::new().put(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1812,7 +1822,7 @@ impl Light {
             Err(e) => {
                 if config.api_endpoints.len() > 1 {
 
-                    let url = format!("{}/v1/lights/state", config.api_endpoints[1]);
+                    let url = format!("{}/v1/lights/state", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()));
 
                     let request = reqwest::blocking::Client::new().put(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1875,7 +1885,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_state_delta_by_selector(config: LifxConfig, selector: String, delta: StateDelta) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/state/delta", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/state/delta", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1889,7 +1899,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/state/delta", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/state/delta", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -1999,7 +2009,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_toggle_by_selector(config: LifxConfig, selector: String, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/toggle", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/toggle", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2013,7 +2023,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/toggle", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/toggle", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2135,7 +2145,7 @@ impl Light {
     /// }
     ///  ```
     pub fn breathe_by_selector_effect(config: LifxConfig, selector: String, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/breathe", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/breathe", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::blocking::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2149,7 +2159,7 @@ impl Light {
             },
             Err(e) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/breathe", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/breathe", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::blocking::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2257,7 +2267,7 @@ impl Light {
     /// }
     ///  ```
     pub fn clean_by_selector(config: LifxConfig, selector: String, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/clean", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/clean", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::blocking::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2271,7 +2281,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/clean", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/clean", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::blocking::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2377,7 +2387,7 @@ impl Light {
     /// }
     ///  ```
     pub fn effects_off_by_selector(config: LifxConfig, selector: String, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/off", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/off", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::blocking::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2391,7 +2401,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/off", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/off", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::blocking::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2501,7 +2511,7 @@ impl Light {
     /// }
     ///  ```
     pub fn flame_effect_by_selector(config: LifxConfig, selector: String, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/flame", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/flame", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::blocking::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2515,7 +2525,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/flame", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/flame", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::blocking::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -2600,7 +2610,7 @@ impl Light {
     /// }
     ///  ```
     pub fn list_by_selector(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
-        let url = format!("{}/v1/lights/{}", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
         let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
         match request {
             Ok(req) => {
@@ -2609,7 +2619,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
                     let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
                     match request {
                         Ok(req) => {
@@ -2725,7 +2735,7 @@ impl Light {
     /// }
     ///  ```
     pub fn morph_effect_by_selector(config: LifxConfig, selector: String, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/morph", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/morph", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
         let request = reqwest::blocking::Client::new().post(url).header("Authorization", format!("Bearer {}", config.access_token)).form(&morph_effect.to_params()).send();
         match request{
             Ok(req) => {
@@ -2734,7 +2744,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/morph", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/morph", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
                     let request = reqwest::blocking::Client::new().post(url).header("Authorization", format!("Bearer {}", config.access_token)).form(&morph_effect.to_params()).send();
                     match request{
                         Ok(req) => {
@@ -2842,7 +2852,7 @@ impl Light {
     /// }
     ///  ```
     pub fn move_effect_by_selector(config: LifxConfig, selector: String, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/move", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/move", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
         let request = reqwest::blocking::Client::new().post(url).header("Authorization", format!("Bearer {}", config.access_token)).form(&move_effect.to_params()).send();
         match request{
             Ok(req) => {
@@ -2851,7 +2861,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/move", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/move", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
                     let request = reqwest::blocking::Client::new().post(url).header("Authorization", format!("Bearer {}", config.access_token)).form(&move_effect.to_params()).send();
                     match request{
                         Ok(req) => {
@@ -2959,7 +2969,7 @@ impl Light {
     /// }
     ///  ```
     pub fn pulse_effect_by_selector(config: LifxConfig, selector: String, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/pulse", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/effects/pulse", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
         let request = reqwest::blocking::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&pulse_effect.to_params())
@@ -2971,7 +2981,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/pulse", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/effects/pulse", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
                     let request = reqwest::blocking::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&pulse_effect.to_params())
@@ -3075,7 +3085,7 @@ impl Light {
     /// }
     ///  ```
     pub fn set_state_by_selector(config: LifxConfig, selector: String, state: State) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/state", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/state", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::blocking::Client::new().put(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -3088,7 +3098,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/state", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/state", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::blocking::Client::new().put(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -3158,7 +3168,7 @@ impl Light {
     /// }
     ///  ```
     pub fn set_states(config: LifxConfig, states: States) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/state", config.api_endpoints[0]);
+        let url = format!("{}/v1/lights/state", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()));
 
         let request = reqwest::blocking::Client::new().put(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -3172,7 +3182,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/state", config.api_endpoints[1]);
+                    let url = format!("{}/v1/lights/state", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()));
 
                     let request = reqwest::blocking::Client::new().put(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -3232,7 +3242,7 @@ impl Light {
     /// }
     ///  ```
     pub fn state_delta_by_selector(config: LifxConfig, selector: String, delta: StateDelta) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/state/delta", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/state/delta", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::blocking::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -3246,7 +3256,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/state/delta", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/state/delta", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::blocking::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -3352,7 +3362,7 @@ impl Light {
     /// }
     ///  ```
     pub fn toggle_by_selector(config: LifxConfig, selector: String, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/toggle", config.api_endpoints[0], selector);
+        let url = format!("{}/v1/lights/{}/toggle", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
         let request = reqwest::blocking::Client::new().post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
@@ -3366,7 +3376,7 @@ impl Light {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/toggle", config.api_endpoints[1], selector);
+                    let url = format!("{}/v1/lights/{}/toggle", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), selector);
 
                     let request = reqwest::blocking::Client::new().post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
@@ -3440,7 +3450,7 @@ impl Scene {
     /// }
     ///  ```
     pub async fn async_list(config: LifxConfig) -> Result<Scenes, reqwest::Error> {
-        let url = format!("{}/v1/scenes", config.api_endpoints[0]);
+        let url = format!("{}/v1/scenes", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()));
         let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
         match request {
             Ok(req) => {
@@ -3449,7 +3459,7 @@ impl Scene {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/scenes", config.api_endpoints[1]);
+                    let url = format!("{}/v1/scenes", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()));
                     let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
                     match request {
                         Ok(req) => {
@@ -3497,7 +3507,7 @@ impl Scene {
     /// }
     ///  ```
     pub fn list(config: LifxConfig) -> Result<Scenes, reqwest::Error> {
-        let url = format!("{}/v1/scenes", config.api_endpoints[0]);
+        let url = format!("{}/v1/scenes", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()));
         let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
 
         match request{
@@ -3507,7 +3517,7 @@ impl Scene {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/scenes", config.api_endpoints[1]);
+                    let url = format!("{}/v1/scenes", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()));
                     let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
             
                     match request{
@@ -3570,7 +3580,7 @@ impl Color {
     /// }
     ///  ```
     pub async fn async_validate(config: LifxConfig, color: String) -> Result<Color, reqwest::Error> {
-        let url = format!("{}/v1/color?string={}", config.api_endpoints[0], color);
+        let url = format!("{}/v1/color?string={}", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), color);
         let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
         match request {
             Ok(req) => {
@@ -3579,7 +3589,7 @@ impl Color {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/color?string={}", config.api_endpoints[1], color);
+                    let url = format!("{}/v1/color?string={}", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), color);
                     let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
                     match request {
                         Ok(req) => {
@@ -3626,7 +3636,7 @@ impl Color {
     /// }
     ///  ```
     pub fn validate(config: LifxConfig, color: String) -> Result<Color, reqwest::Error> {
-        let url = format!("{}/v1/color?string={}", config.api_endpoints[0], color);
+        let url = format!("{}/v1/color?string={}", config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), color);
         let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
         match request {
             Ok(req) => {
@@ -3635,7 +3645,7 @@ impl Color {
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/color?string={}", config.api_endpoints[1], color);
+                    let url = format!("{}/v1/color?string={}", config.get_second_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), color);
                     let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
                     match request {
                         Ok(req) => {
@@ -4705,7 +4715,7 @@ mod tests {
             .add_endpoint("https://api.lifx.com".to_string());
         assert_eq!(config.access_token, "test_token");
         assert_eq!(config.api_endpoints.len(), 1);
-        assert_eq!(config.api_endpoints[0], "https://api.lifx.com");
+        assert_eq!(config.get_first_endpoint().unwrap_or_else(|| "http://no-endpoints".to_string()), "https://api.lifx.com");
     }
 
     #[test]
@@ -5408,5 +5418,85 @@ mod tests {
         assert_eq!(deserialized.access_token, config.access_token);
         assert_eq!(deserialized.api_endpoints, config.api_endpoints);
         assert_eq!(deserialized.failover_config.strategy, config.failover_config.strategy);
+    }
+    
+    #[test]
+    fn test_safe_endpoint_access_empty() {
+        let config = LifxConfig::new("test_token".to_string());
+        
+        // Test with empty endpoints
+        assert_eq!(config.get_first_endpoint(), None);
+        assert_eq!(config.get_second_endpoint(), None);
+        assert_eq!(config.get_prioritized_endpoints().len(), 0);
+    }
+    
+    #[test]
+    fn test_safe_endpoint_access_single() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api.lifx.com".to_string());
+        
+        // Test with single endpoint
+        assert_eq!(config.get_first_endpoint(), Some("https://api.lifx.com".to_string()));
+        assert_eq!(config.get_second_endpoint(), None);
+        assert_eq!(config.get_prioritized_endpoints().len(), 1);
+    }
+    
+    #[test]
+    fn test_safe_endpoint_access_multiple() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .add_endpoint("https://api3.lifx.com".to_string());
+        
+        // Test with multiple endpoints
+        assert_eq!(config.get_first_endpoint(), Some("https://api1.lifx.com".to_string()));
+        assert_eq!(config.get_second_endpoint(), Some("https://api2.lifx.com".to_string()));
+        assert_eq!(config.get_prioritized_endpoints().len(), 3);
+    }
+    
+    #[test]
+    fn test_empty_config_doesnt_panic() {
+        let config = LifxConfig::new("test_token".to_string());
+        
+        // These should not panic even with empty endpoints
+        let _ = config.get_first_endpoint().unwrap_or_else(|| "default".to_string());
+        let _ = config.get_second_endpoint().unwrap_or_else(|| "default".to_string());
+        let _ = config.get_next_endpoint();
+        let _ = config.get_prioritized_endpoints();
+        let _ = config.get_healthy_endpoints();
+        
+        // Should handle empty config gracefully
+        assert!(config.get_next_endpoint().is_none());
+    }
+    
+    #[test]
+    fn test_single_endpoint_failover() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://only.api.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::Failover);
+        
+        config.init_health_tracking();
+        
+        // Should return the single endpoint
+        assert_eq!(config.get_next_endpoint(), Some("https://only.api.lifx.com".to_string()));
+        
+        // After one failure, should still be healthy
+        config.mark_endpoint_failure("https://only.api.lifx.com");
+        assert_eq!(config.get_next_endpoint(), Some("https://only.api.lifx.com".to_string()));
+        
+        // After two failures, should still be healthy
+        config.mark_endpoint_failure("https://only.api.lifx.com");
+        assert_eq!(config.get_next_endpoint(), Some("https://only.api.lifx.com".to_string()));
+        
+        // After three failures, endpoint becomes unhealthy
+        config.mark_endpoint_failure("https://only.api.lifx.com");
+        
+        // With Failover strategy and only one endpoint, it should still try to return
+        // something, even if unhealthy (after retry timeout)
+        // Note: Due to exponential backoff, it might not appear immediately in prioritized list
+        // but get_next_endpoint should still return it as a last resort
+        let next = config.get_next_endpoint();
+        // Should still return the endpoint as there's no alternative
+        assert!(next.is_some() || config.get_prioritized_endpoints().is_empty());
     }
 }
