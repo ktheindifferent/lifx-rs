@@ -546,9 +546,9 @@ impl LifxConfig {
                                     .timeout(Duration::from_millis(1))
                                     .build()
                                     .unwrap();
-                                client.get(&format!("http://{}/timeout", ep))
+                                client.get(format!("http://{}/timeout", ep))
                                     .send().await
-                                    .and_then(|_| client.get("http://timeout").build().map_err(Into::into))
+                                    .and_then(|_| client.get("http://timeout").build())
                                     .and_then(|_| unreachable!())
                             }
                         }
@@ -659,7 +659,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_breathe_effect(&self, config: LifxConfig, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_breathe_effect_by_selector(config, format!("id:{}", self.id), breathe).await;
+        Self::async_breathe_effect_by_selector(config, format!("id:{}", self.id), breathe).await
     }
 
     /// Asynchronously activate the breathe animation for the selected light(s)
@@ -711,7 +711,7 @@ impl Light {
         match request{
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -725,14 +725,14 @@ impl Light {
                     match request{
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -787,7 +787,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_clean(&self, config: LifxConfig, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_clean_by_selector(config, format!("id:{}", self.id), clean).await;
+        Self::async_clean_by_selector(config, format!("id:{}", self.id), clean).await
     }
 
     /// Asynchronously switch a selected LIFX object to clean mode, with a set duration. 
@@ -836,7 +836,7 @@ impl Light {
         match request{
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -850,14 +850,14 @@ impl Light {
                     match request{
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -911,7 +911,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_effects_off(&self, config: LifxConfig, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_effects_off_by_selector(config, format!("id:{}", self.id), effects_off).await;
+        Self::async_effects_off_by_selector(config, format!("id:{}", self.id), effects_off).await
     }
 
     /// Stops animation(s) for the selected light(s)
@@ -959,7 +959,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -973,15 +973,15 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1038,7 +1038,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_flame_effect(&self, config: LifxConfig, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_flame_effect_by_selector(config, format!("id:{}", self.id), flame_effect).await;
+        Self::async_flame_effect_by_selector(config, format!("id:{}", self.id), flame_effect).await
     }
 
     /// Activate the flame animation for the selected light(s)
@@ -1088,7 +1088,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1102,14 +1102,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1148,7 +1148,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_list_all(config: LifxConfig) -> Result<Lights, reqwest::Error> {
-        return Self::async_list_by_selector(config, format!("all")).await;
+        Self::async_list_by_selector(config, "all".to_string()).await
     }
 
     /// Asynchronously gets lights belonging to the authenticated account. Filtering the lights using selectors. Properties such as id, label, group and location can be used in selectors.
@@ -1209,7 +1209,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<Lights>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1218,14 +1218,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Lights>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1284,7 +1284,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_morph_effect(&self, config: LifxConfig, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_morph_effect_by_selector(config, format!("id:{}", self.id), morph_effect).await;
+        Self::async_morph_effect_by_selector(config, format!("id:{}", self.id), morph_effect).await
     }
 
     /// Asynchronously activate the morph animation for the selected light(s)
@@ -1338,7 +1338,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1350,14 +1350,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1413,7 +1413,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_move_effect(&self, config: LifxConfig, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_move_effect_by_selector(config, format!("id:{}", self.id), move_effect).await;
+        Self::async_move_effect_by_selector(config, format!("id:{}", self.id), move_effect).await
     }
 
     /// Asynchronously activate the move animation for the selected light(s)
@@ -1464,7 +1464,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1478,14 +1478,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1542,7 +1542,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_pulse_effect(&self, config: LifxConfig, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_pulse_effect_by_selector(config, format!("id:{}", self.id), pulse_effect).await;
+        Self::async_pulse_effect_by_selector(config, format!("id:{}", self.id), pulse_effect).await
     }
 
     /// Asynchronously activate the pulse animation for the selected light(s)
@@ -1594,7 +1594,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1608,16 +1608,16 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 
             
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1673,7 +1673,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_set_state(&self, config: LifxConfig, state: State) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_set_state_by_selector(config, format!("id:{}", self.id), state).await;
+        Self::async_set_state_by_selector(config, format!("id:{}", self.id), state).await
     }
 
     /// Asynchronously sets the state for the selected LIFX object
@@ -1721,7 +1721,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1735,14 +1735,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                          return Err(err2);  
+                          Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1807,7 +1807,7 @@ impl Light {
         match request{
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(e) => {
                 if config.api_endpoints.len() > 1 {
@@ -1822,16 +1822,16 @@ impl Light {
                     match request{
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(e2) => {
-                            return Err(e2);
+                            Err(e2)
                         }
                     }
 
 
                 } else {
-                    return Err(e);
+                    Err(e)
                 }
             }
         }
@@ -1885,7 +1885,7 @@ impl Light {
         match request{
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1899,14 +1899,14 @@ impl Light {
                     match request{
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2)
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1961,7 +1961,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_toggle(&self, config: LifxConfig, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_toggle_by_selector(config, format!("id:{}", self.id), toggle).await;
+        Self::async_toggle_by_selector(config, format!("id:{}", self.id), toggle).await
     }
 
     /// Turn off lights if any of them are on, or turn them on if they are all off. 
@@ -2009,7 +2009,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2023,14 +2023,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2094,7 +2094,7 @@ impl Light {
     /// }
     ///  ```
     pub fn breathe_effect(&self, config: LifxConfig, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::breathe_by_selector_effect(config, format!("id:{}", self.id), breathe);
+        Self::breathe_by_selector_effect(config, format!("id:{}", self.id), breathe)
     }
 
     /// Activate the breathe animation for the selected light(s)
@@ -2145,7 +2145,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(e) => {
                 if config.api_endpoints.len() > 1 {
@@ -2159,14 +2159,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(e2) => {
-                            return Err(e2);
+                            Err(e2)
                         }
                     }
                 } else {
-                    return Err(e);
+                    Err(e)
                 }
             }
         }
@@ -2219,7 +2219,7 @@ impl Light {
     /// }
     ///  ```
     pub fn clean(&self, config: LifxConfig, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::clean_by_selector(config, format!("id:{}", self.id), clean);
+        Self::clean_by_selector(config, format!("id:{}", self.id), clean)
     }
 
     /// This endpoint lets you switch a selected LIFX object to clean mode, with a set duration. 
@@ -2267,7 +2267,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2281,14 +2281,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2340,7 +2340,7 @@ impl Light {
     /// }
     ///  ```
     pub fn effects_off(&self, config: LifxConfig, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::effects_off_by_selector(config, format!("id:{}", self.id), effects_off);
+        Self::effects_off_by_selector(config, format!("id:{}", self.id), effects_off)
     }
 
     /// Stops animation(s) for the selected light(s)
@@ -2387,7 +2387,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2401,14 +2401,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2462,7 +2462,7 @@ impl Light {
     /// }
     ///  ```
     pub fn flame_effect(&self, config: LifxConfig, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::flame_effect_by_selector(config, format!("id:{}", self.id), flame_effect);
+        Self::flame_effect_by_selector(config, format!("id:{}", self.id), flame_effect)
     }
 
     /// Activate the flame animation for the selected light(s)
@@ -2511,7 +2511,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2525,14 +2525,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2568,7 +2568,7 @@ impl Light {
     /// }
     ///  ```
     pub fn list_all(config: LifxConfig) -> Result<Lights, reqwest::Error> {
-        return Self::list_by_selector(config, format!("all"));
+        Self::list_by_selector(config, "all".to_string())
     }
 
     /// Gets lights belonging to the authenticated account. Filtering the lights using selectors. Properties such as id, label, group and location can be used in selectors.
@@ -2605,7 +2605,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<Lights>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2614,14 +2614,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Lights>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2680,7 +2680,7 @@ impl Light {
     /// }
     ///  ```
     pub fn morph_effect(&self, config: LifxConfig, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::morph_effect_by_selector(config, format!("id:{}", self.id), morph_effect);
+        Self::morph_effect_by_selector(config, format!("id:{}", self.id), morph_effect)
     }
 
     /// Activate the morph animation for the selected light(s)
@@ -2730,7 +2730,7 @@ impl Light {
         match request{
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2739,14 +2739,14 @@ impl Light {
                     match request{
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2802,7 +2802,7 @@ impl Light {
     /// }
     ///  ```
     pub fn move_effect(&self, config: LifxConfig, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::move_effect_by_selector(config, format!("id:{}", self.id), move_effect);
+        Self::move_effect_by_selector(config, format!("id:{}", self.id), move_effect)
     }
 
     /// Activate the move animation for the selected light(s)
@@ -2847,7 +2847,7 @@ impl Light {
         match request{
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2856,14 +2856,14 @@ impl Light {
                     match request{
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2918,7 +2918,7 @@ impl Light {
     /// }
     ///  ```
     pub fn pulse_effect(&self, config: LifxConfig, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::pulse_effect_by_selector(config, format!("id:{}", self.id), pulse_effect);
+        Self::pulse_effect_by_selector(config, format!("id:{}", self.id), pulse_effect)
     }
 
     /// Activate the pulse animation for the selected light(s)
@@ -2967,7 +2967,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2979,14 +2979,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3038,7 +3038,7 @@ impl Light {
     /// }
     ///  ```
     pub fn set_state(&self, config: LifxConfig, state: State) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::set_state_by_selector(config, format!("id:{}", self.id), state);
+        Self::set_state_by_selector(config, format!("id:{}", self.id), state)
     }
 
     /// Sets the state for the selected LIFX object
@@ -3084,7 +3084,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3097,14 +3097,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3168,7 +3168,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3182,14 +3182,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3242,7 +3242,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3256,14 +3256,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3315,7 +3315,7 @@ impl Light {
     /// }
     ///  ```
     pub fn toggle(&self, config: LifxConfig, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::toggle_by_selector(config, format!("id:{}", self.id), toggle);
+        Self::toggle_by_selector(config, format!("id:{}", self.id), toggle)
     }
 
     /// Turn off lights if any of them are on, or turn them on if they are all off. 
@@ -3362,7 +3362,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3376,15 +3376,15 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3445,7 +3445,7 @@ impl Scene {
         match request {
             Ok(req) => {
                 let json = req.json::<Scenes>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3454,15 +3454,15 @@ impl Scene {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Scenes>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
             
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3503,7 +3503,7 @@ impl Scene {
         match request{
             Ok(req) => {
                 let json = req.json::<Scenes>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3513,14 +3513,14 @@ impl Scene {
                     match request{
                         Ok(req) => {
                             let json = req.json::<Scenes>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3575,7 +3575,7 @@ impl Color {
         match request {
             Ok(req) => {
                 let json = req.json::<Color>().await?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3584,14 +3584,14 @@ impl Color {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Color>().await?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3631,7 +3631,7 @@ impl Color {
         match request {
             Ok(req) => {
                 let json = req.json::<Color>()?;
-                return Ok(json);
+                Ok(json)
             },
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3640,14 +3640,14 @@ impl Color {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Color>()?;
-                            return Ok(json);
+                            Ok(json)
                         },
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3667,10 +3667,10 @@ pub struct Clean {
 }
 impl Clean {
     pub fn new() -> Self {
-        return Clean{
+        Clean{
             stop: None,
             duration: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -3684,7 +3684,7 @@ impl Clean {
             None => {}
         }
        
-        return params;
+        params
     }
 
 
@@ -3736,7 +3736,7 @@ impl State {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return State{
+        State{
             power: None,
             color: None,
             brightness: None,
@@ -3744,7 +3744,7 @@ impl State {
             infrared: None,
             selector: None,
             fast: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -3777,7 +3777,7 @@ impl State {
             Some(fast) => params.push(("fast".to_string(), fast.to_string())),
             None => {}
         }
-        return params;
+        params
     }
 
 
@@ -3815,9 +3815,9 @@ impl Toggle {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return Toggle{
+        Toggle{
             duration: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -3826,7 +3826,7 @@ impl Toggle {
             Some(duration) => params.push(("duration".to_string(), duration.to_string())),
             None => {}
         }
-        return params;
+        params
     }
 
 
@@ -3865,10 +3865,10 @@ impl States {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return States{
+        States{
             states: None,
             defaults: None
-        };
+        }
     }
 }
 
@@ -3919,7 +3919,7 @@ impl StateDelta {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return StateDelta{
+        StateDelta{
             power: None,
             duration: None,
             infrared: None,
@@ -3928,7 +3928,7 @@ impl StateDelta {
             brightness: None,
             kelvin: None,
             fast: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -3973,7 +3973,7 @@ impl StateDelta {
             None => {}
         }
 
-        return params;
+        params
     }
 
 }
@@ -4027,7 +4027,7 @@ impl BreatheEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return BreatheEffect{
+        BreatheEffect{
             color: None,
             from_color: None,
             period: None,
@@ -4035,7 +4035,7 @@ impl BreatheEffect {
             persist: None,
             power_on: None,
             peak: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -4075,7 +4075,7 @@ impl BreatheEffect {
             None => {}
         }
 
-        return params;
+        params
     }
 
 }
@@ -4124,13 +4124,13 @@ impl MoveEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return MoveEffect{
+        MoveEffect{
             direction: None,
             period: None,
             cycles: None,
             power_on: None,
             fast: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -4160,7 +4160,7 @@ impl MoveEffect {
             None => {}
         }
 
-        return params;
+        params
     }
 
 }
@@ -4219,13 +4219,13 @@ impl MorphEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return MorphEffect{
+        MorphEffect{
             period: None,
             duration: None,
             palette: None,
             power_on: None,
             fast: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -4255,7 +4255,7 @@ impl MorphEffect {
             None => {}
         }
 
-        return params;
+        params
     }
 
 }
@@ -4309,14 +4309,14 @@ impl PulseEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return PulseEffect{
+        PulseEffect{
             color: None,
             from_color: None,
             period: None,
             cycles: None,
             persist: None,
             power_on: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -4351,7 +4351,7 @@ impl PulseEffect {
             None => {}
         }
 
-        return params;
+        params
     }
 
 }
@@ -4389,9 +4389,9 @@ impl EffectsOff {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return EffectsOff{
+        EffectsOff{
             power_off: None,
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -4401,7 +4401,7 @@ impl EffectsOff {
             None => {}
         }
 
-        return params;
+        params
     }
 
 }
@@ -4454,12 +4454,12 @@ impl FlameEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return FlameEffect{
+        FlameEffect{
             period: None,
             duration: None,
             power_on: None,
             fast: None
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -4484,7 +4484,7 @@ impl FlameEffect {
             None => {}
         }
 
-        return params;
+        params
     }
 
 }
@@ -4602,7 +4602,7 @@ pub fn string_vec_to_params(input: Vec<String>) -> String {
 
     params = format!("{}]", params);
 
-    return params;
+    params
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -1204,7 +1204,7 @@ impl Frame {
 
     fn validate(&self) {
         assert!(self.origin < 4);
-        assert_eq!(self.addressable, true);
+        assert!(self.addressable);
         assert_eq!(self.protocol, 1024);
     }
     fn pack(&self) -> Result<Vec<u8>, Error> {
@@ -1216,7 +1216,7 @@ impl Frame {
         let mut d: u16 = (<u16 as From<u8>>::from(self.origin) & 0b11) << 14;
         d += if self.tagged { 1 } else { 0 } << 13;
         d += if self.addressable { 1 } else { 0 } << 12;
-        d += (self.protocol & 0b1111_1111_1111) as u16;
+        d += self.protocol & 0b1111_1111_1111;
 
         v.write_u16::<LittleEndian>(d)?;
 
@@ -1348,7 +1348,7 @@ impl ProtocolHeader {
 /// Options used to contruct a [RawMessage].
 ///
 /// See also [RawMessage::build].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct BuildOptions {
     /// If not `None`, this is the ID of the device you want to address.
     ///
@@ -1378,17 +1378,6 @@ pub struct BuildOptions {
     pub source: u32,
 }
 
-impl std::default::Default for BuildOptions {
-    fn default() -> BuildOptions {
-        BuildOptions {
-            target: None,
-            ack_required: false,
-            res_required: false,
-            sequence: 0,
-            source: 0,
-        }
-    }
-}
 
 impl RawMessage {
     /// Build a RawMessage (which is suitable for sending on the network) from a given Message
@@ -1889,8 +1878,8 @@ mod tests {
 
         assert_eq!(frame.size, 0x0028);
         assert_eq!(frame.origin, 1);
-        assert_eq!(frame.addressable, true);
-        assert_eq!(frame.tagged, false);
+        assert!(frame.addressable);
+        assert!(!frame.tagged);
         assert_eq!(frame.protocol, 1024);
         assert_eq!(frame.source, 0x524b5242);
     }
@@ -1906,8 +1895,8 @@ mod tests {
 
         assert_eq!(frame.size, 0x0024);
         assert_eq!(frame.origin, 0);
-        assert_eq!(frame.tagged, false);
-        assert_eq!(frame.addressable, true);
+        assert!(!frame.tagged);
+        assert!(frame.addressable);
         assert_eq!(frame.protocol, 1024);
         assert_eq!(frame.source, 0x053741ca);
     }
