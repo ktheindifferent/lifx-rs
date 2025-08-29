@@ -45,88 +45,67 @@
 //! ## How to use library
 //!
 //! Add the following line to your cargo.toml:
-//! ```
-//! lifx-rs = "0.1.28"
+//! ```toml
+//! lifx-rs = "0.1.30"
 //! ```
 //!
 //! Example:
-//! ```rust
+//! ```rust,no_run
 //! extern crate lifx_rs as lifx;
 //!
-//! fn main() {
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!
 //!     let key = "xxx".to_string();
-//!  
-//!     let mut api_endpoints: Vec<String> = Vec::new();
-//!  
-//!     // Official API
-//!     api_endpoints.push(format!("https://api.lifx.com"));
 //!
-//!     // lifx-server-api (Un-Official)
-//!     api_endpoints.push(format!("http://localhost:8089"));
-//!
-//!     let config = lifx::LifxConfig{
-//!         access_token: key.clone(),
-//!         api_endpoints: api_endpoints
-//!     };
+//!     let config = lifx::LifxConfig::new(key)
+//!         .add_endpoint("https://api.lifx.com".to_string())
+//!         .add_endpoint("http://localhost:8089".to_string());
 //!
 //!     // Build an "OffState" to set
 //!     let mut off_state = lifx::State::new();
-//!     off_state.power = Some(format!("off"));
+//!     off_state.power = Some("off".to_string());
 //!
 //!     // Turn off all lights
-//!     lifx::Light::set_state_by_selector(config.clone(), format!("all"), off_state);
+//!     lifx::Light::set_state_by_selector(config.clone(), "all".to_string(), off_state)?;
 //!
-//!     let all_lights = lifx::Light::list_all(config.clone());
-//!     match all_lights {
-//!         Ok(lights) => {
-//!             println!("{:?}",lights.clone());
+//!     let lights = lifx::Light::list_all(config.clone())?;
+//!     println!("{:?}", lights.clone());
 //!
-//!             let mut state = lifx::State::new();
-//!             state.power = Some(format!("on"));
-//!             state.brightness = Some(1.0);
-//!      
-//!             for light in lights {
-//!                 let results = light.set_state(config.clone(), state.clone());
-//!                 println!("{:?}",results);
-//!             }
-//!         },
-//!         Err(e) => println!("{}",e)
+//!     let mut state = lifx::State::new();
+//!     state.power = Some("on".to_string());
+//!     state.brightness = Some(1.0);
+//!
+//!     for light in lights {
+//!         let results = light.set_state(config.clone(), state.clone())?;
+//!         println!("{:?}", results);
 //!     }
 //!
+//!     Ok(())
 //! }
-//!
 //! ```
 //!
 //!
 //! Async Example:
-//! ```rust
+//! ```rust,no_run
 //! extern crate lifx_rs as lifx;
 //!
 //! #[tokio::main]
-//! async fn main() {
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!
 //!     let key = "xxx".to_string();
-//!  
-//!     let mut api_endpoints: Vec<String> = Vec::new();
-//!  
-//!     // Official API
-//!     api_endpoints.push(format!("https://api.lifx.com"));
 //!
-//!     // lifx-server-api (Un-Official)
-//!     api_endpoints.push(format!("http://localhost:8089"));
-//!
-//!     let config = lifx::LifxConfig{
-//!         access_token: key.clone(),
-//!         api_endpoints: api_endpoints
-//!     };
+//!     let config = lifx::LifxConfig::new(key)
+//!         .add_endpoint("https://api.lifx.com".to_string())
+//!         .add_endpoint("http://localhost:8089".to_string());
 //!
 //!     // Build "OffState" to set
 //!     let mut off_state = lifx::State::new();
-//!     off_state.power = Some(format!("off"));
+//!     off_state.power = Some("off".to_string());
 //!  
 //!     // Turn off all lights
-//!     lifx::Light::async_set_state_by_selector(config.clone(), format!("all"), off_state).await;
+//!     lifx::Light::async_set_state_by_selector(config.clone(), "all".to_string(), off_state).await?;
+//!     
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -135,18 +114,14 @@
 //! This example shows how to use the new cleanup functions to properly handle tile animations
 //! that have a nonzero duration, avoiding the bug where tiles remain stuck in animation state.
 //! 
-//! ```ignore
+//! ```rust,no_run
 //! extern crate lifx_rs as lifx;
 //! 
-//! fn main() {
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let key = "your_token".to_string();
-//!     let mut api_endpoints: Vec<String> = Vec::new();
-//!     api_endpoints.push("https://api.lifx.com".to_string());
 //!     
-//!     let config = lifx::LifxConfig{
-//!         access_token: key,
-//!         api_endpoints: api_endpoints
-//!     };
+//!     let config = lifx::LifxConfig::new(key)
+//!         .add_endpoint("https://api.lifx.com".to_string());
 //!     
 //!     // Create a flame effect with 10 second duration
 //!     let mut flame_effect = lifx::FlameEffect::new();
@@ -180,6 +155,8 @@
 //!         }
 //!         Err(e) => println!("Error: {}", e)
 //!     }
+//!     
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -620,42 +597,34 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut breathe = lifx::BreatheEffect::new();
-    ///             breathe.color = Some(format!("red"));
-    ///             breathe.from_color = Some(format!("green"));
-    ///             breathe.period = Some(10);
-    ///             breathe.persist = Some(true);
-    ///             breathe.power_on = Some(true);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_breathe_effect(key.clone(), breathe.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}", lights.clone());
+    /// 
+    ///     let mut breathe = lifx::BreatheEffect::new();
+    ///     breathe.color = Some("red".to_string());
+    ///     breathe.from_color = Some("green".to_string());
+    ///     breathe.period = Some(10.0);
+    ///     breathe.persist = Some(true);
+    ///     breathe.power_on = Some(true);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.async_breathe_effect(config.clone(), breathe.clone()).await?;
+    ///         println!("{:?}", results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_breathe_effect(&self, config: LifxConfig, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -672,32 +641,30 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut breathe = lifx::BreatheEffect::new();
-    ///     breathe.color = Some(format!("red"));
-    ///     breathe.from_color = Some(format!("green"));
-    ///     breathe.period = Some(10);
+    ///     breathe.color = Some("red".to_string());
+    ///     breathe.from_color = Some("green".to_string());
+    ///     breathe.period = Some(10.0);
     ///     breathe.persist = Some(true);
     ///     breathe.power_on = Some(true);
     ///     
     ///     // Apply breathe effect to all light(s)
-    ///     lifx::Light::async_breathe_effect_by_selector(key.clone(), format!("all"), breathe).await;
+    ///     let result = lifx::Light::async_breathe_effect_by_selector(config, "all".to_string(), breathe).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_breathe_effect_by_selector(config: LifxConfig, selector: String, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -751,39 +718,31 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut clean = lifx::Clean::new();
-    ///             clean.duration = Some(0);
-    ///             clean.stop = Some(false);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_clean(key.clone(), clean.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}", lights.clone());
+    /// 
+    ///     let mut clean = lifx::Clean::new();
+    ///     clean.duration = Some(0);
+    ///     clean.stop = Some(false);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.async_clean(config.clone(), clean.clone()).await?;
+    ///         println!("{:?}", results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_clean(&self, config: LifxConfig, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
@@ -800,29 +759,27 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut clean = lifx::Clean::new();
     ///     clean.duration = Some(0);
     ///     clean.stop = Some(false);
     ///     
     ///     // Set all light to clean mode
-    ///     lifx::Light::async_clean_by_selector(key.clone(), format!("all"), clean).await;
+    ///     let result = lifx::Light::async_clean_by_selector(config, "all".to_string(), clean).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_clean_by_selector(config: LifxConfig, selector: String, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
@@ -876,38 +833,30 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut effects_off = lifx::EffectsOff::new();
-    ///             effects_off.power_off = Some(true);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_effects_off(key.clone(), effects_off.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}", lights.clone());
+    /// 
+    ///     let mut effects_off = lifx::EffectsOff::new();
+    ///     effects_off.power_off = Some(true);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.async_effects_off(config.clone(), effects_off.clone()).await?;
+    ///         println!("{:?}", results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_effects_off(&self, config: LifxConfig, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
@@ -924,28 +873,26 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut effects_off = lifx::EffectsOff::new();
     ///     effects_off.power_off = Some(true);
     ///     
     ///     // Send morph effect to all lights
-    ///     lifx::Light::async_effects_off_by_selector(key.clone(), format!("all"), effects_off).await;
+    ///     let result = lifx::Light::async_effects_off_by_selector(config, "all".to_string(), effects_off).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_effects_off_by_selector(config: LifxConfig, selector: String, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
@@ -1001,40 +948,32 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut flame_effect = lifx::FlameEffect::new();
-    ///             flame_effect.period = Some(10);
-    ///             flame_effect.duration = Some(0);
-    ///             flame_effect.power_on = Some(true);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_flame_effect(key.clone(), flame_effect.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}", lights.clone());
+    /// 
+    ///     let mut flame_effect = lifx::FlameEffect::new();
+    ///     flame_effect.period = Some(10);
+    ///     flame_effect.duration = Some(0.0);
+    ///     flame_effect.power_on = Some(true);
+    ///  
+    ///     for light in lights {
+    ///         let results = light.async_flame_effect(config.clone(), flame_effect.clone()).await?;
+    ///         println!("{:?}", results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_flame_effect(&self, config: LifxConfig, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -1051,30 +990,28 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut flame_effect = lifx::FlameEffect::new();
     ///     flame_effect.period = Some(10);
-    ///     flame_effect.duration = Some(0);
+    ///     flame_effect.duration = Some(0.0);
     ///     flame_effect.power_on = Some(true);
     ///     
     ///     // Send morph effect to all lights
-    ///     lifx::Light::async_flame_effect_by_selector(key.clone(), format!("all"), flame_effect).await;
+    ///     let result = lifx::Light::async_flame_effect_by_selector(config, "all".to_string(), flame_effect).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_flame_effect_by_selector(config: LifxConfig, selector: String, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -1127,24 +1064,21 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::async_list_all(config).await?;
+    ///     let lights = lifx::Light::async_list_all(config).await?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_list_all(config: LifxConfig) -> Result<Lights, reqwest::Error> {
@@ -1160,24 +1094,21 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::async_list_by_selector(key, format!("all")).await?;
+    ///     let lights = lifx::Light::async_list_by_selector(config, format!("all")).await?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_list_by_selector(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
@@ -1241,46 +1172,38 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
+    /// 
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}", lights.clone());
+    /// 
+    ///     let mut morph_effect = lifx::MorphEffect::new();
+    ///     morph_effect.period = Some(10);
+    ///     morph_effect.duration = Some(0.0);
     ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
-    /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut morph_effect = lifx::MorphEffect::new();
-    ///             morph_effect.period = Some(10);
-    ///             morph_effect.duration = Some(0);
-    /// 
-    ///             let mut palette: Vec<String> = Vec::new();
-    ///             palette.push(format!("red"));
-    ///             palette.push(format!("green"));
-    /// 
-    ///             morph_effect.palette = Some(palette);
-    ///             morph_effect.power_on = Some(true);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_morph_effect(key.clone(), morph_effect.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let mut palette: Vec<String> = Vec::new();
+    ///     palette.push(format!("red"));
+    ///     palette.push(format!("green"));
+    ///
+    ///     morph_effect.palette = Some(palette);
+    ///     morph_effect.power_on = Some(true);
+    ///  
+    ///     for light in lights {
+    ///         let results = light.async_morph_effect(config.clone(), morph_effect.clone()).await?;
+    ///         println!("{:?}", results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_morph_effect(&self, config: LifxConfig, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -1297,26 +1220,21 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut morph_effect = lifx::MorphEffect::new();
     ///     morph_effect.period = Some(10);
-    ///     morph_effect.duration = Some(0);
+    ///     morph_effect.duration = Some(0.0);
     /// 
     ///     let mut palette: Vec<String> = Vec::new();
     ///     palette.push(format!("red"));
@@ -1326,7 +1244,10 @@ impl Light {
     ///     morph_effect.power_on = Some(true);
     ///     
     ///     // Send morph effect to all lights
-    ///     lifx::Light::async_morph_effect_by_selector(key.clone(), format!("all"), morph_effect).await;
+    ///     let result = lifx::Light::async_morph_effect_by_selector(config, "all".to_string(), morph_effect).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_morph_effect_by_selector(config: LifxConfig, selector: String, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -1375,41 +1296,33 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut move_effect = lifx::MoveEffect::new();
-    ///             move_effect.direction = Some(format!("forward")); // or backward
-    ///             move_effect.period = Some(10);
-    ///             move_effect.cycles = Some(0.9);
-    ///             move_effect.power_on = Some(true);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_move_effect(key.clone(), move_effect.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::async_list_all(config.clone()).await?;
+    ///     println!("{:?}",lights.clone());
+    /// 
+    ///     let mut move_effect = lifx::MoveEffect::new();
+    ///     move_effect.direction = Some("forward".to_string()); // or backward
+    ///     move_effect.period = Some(10);
+    ///     move_effect.cycles = Some(0.9);
+    ///     move_effect.power_on = Some(true);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.async_move_effect(config.clone(), move_effect.clone()).await?;
+    ///         println!("{:?}",results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_move_effect(&self, config: LifxConfig, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -1426,31 +1339,29 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut move_effect = lifx::MoveEffect::new();
-    ///     move_effect.direction = Some(format!("forward")); // or backward
+    ///     move_effect.direction = Some("forward".to_string()); // or backward
     ///     move_effect.period = Some(10);
     ///     move_effect.cycles = Some(0.9);
     ///     move_effect.power_on = Some(true);
     ///     
     ///     // Toggle all lights
-    ///     lifx::Light::async_move_effect_by_selector(key.clone(), format!("all"), move_effect).await;
+    ///     let result = lifx::Light::async_move_effect_by_selector(config, "all".to_string(), move_effect).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_move_effect_by_selector(config: LifxConfig, selector: String, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -1503,42 +1414,34 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut pulse = lifx::PulseEffect::new();
-    ///             pulse.color = Some(format!("red"));
-    ///             pulse.from_color = Some(format!("green"));
-    ///             pulse.period = Some(10);
-    ///             pulse.persist = Some(true);
-    ///             pulse.power_on = Some(true);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_pulse_effect(key.clone(), pulse.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::async_list_all(config.clone()).await?;
+    ///     println!("{:?}",lights.clone());
+    /// 
+    ///     let mut pulse = lifx::PulseEffect::new();
+    ///     pulse.color = Some("red".to_string());
+    ///     pulse.from_color = Some("green".to_string());
+    ///     pulse.period = Some(10.0);
+    ///     pulse.persist = Some(true);
+    ///     pulse.power_on = Some(true);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.async_pulse_effect(config.clone(), pulse.clone()).await?;
+    ///         println!("{:?}",results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_pulse_effect(&self, config: LifxConfig, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -1555,32 +1458,30 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut pulse = lifx::PulseEffect::new();
-    ///     pulse.color = Some(format!("red"));
-    ///     pulse.from_color = Some(format!("green"));
-    ///     pulse.period = Some(10);
+    ///     pulse.color = Some("red".to_string());
+    ///     pulse.from_color = Some("green".to_string());
+    ///     pulse.period = Some(10.0);
     ///     pulse.persist = Some(true);
     ///     pulse.power_on = Some(true);
     ///     
     ///     // Toggle all lights
-    ///     lifx::Light::async_pulse_effect_by_selector(key.clone(), format!("all"), pulse).await;
+    ///     let result = lifx::Light::async_pulse_effect_by_selector(config, "all".to_string(), pulse).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_pulse_effect_by_selector(config: LifxConfig, selector: String, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -1637,39 +1538,31 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut state = lifx::State::new();
-    ///             state.power = Some(format!("on"));
-    ///             state.brightness = Some(1.0);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_set_state(key.clone(), state.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::async_list_all(config.clone()).await?;
+    ///     println!("{:?}",lights.clone());
+    /// 
+    ///     let mut state = lifx::State::new();
+    ///     state.power = Some("on".to_string());
+    ///     state.brightness = Some(1.0);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.async_set_state(config.clone(), state.clone()).await?;
+    ///         println!("{:?}",results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_set_state(&self, config: LifxConfig, state: State) ->  Result<LiFxResults, reqwest::Error>{
@@ -1686,28 +1579,26 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut off_state = lifx::State::new();
-    ///     off_state.power = Some(format!("off"));
+    ///     off_state.power = Some("off".to_string());
     ///     
     ///     // Turn off all lights
-    ///     lifx::Light::async_set_state_by_selector(key.clone(), format!("all"), off_state).await;
+    ///     let result = lifx::Light::async_set_state_by_selector(config, "all".to_string(), off_state).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_set_state_by_selector(config: LifxConfig, selector: String, state: State) ->  Result<LiFxResults, reqwest::Error>{
@@ -1759,22 +1650,17 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut set_states = lifx::States::new();
     ///     let mut states: Vec<lifx::State> = Vec::new();
@@ -1783,17 +1669,20 @@ impl Light {
     ///     defaults.brightness = Some(1.0);
     ///     
     ///     let mut state_1 = lifx::State::new();
-    ///     state_1.selector = Some(format!("id:xxx"));
-    ///     state_1.power = Some(format!("on"));
+    ///     state_1.selector = Some("id:xxx".to_string());
+    ///     state_1.power = Some("on".to_string());
     ///     
     ///     let mut state_2 = lifx::State::new();
-    ///     state_2.selector = Some(format!("id:xyz"));
-    ///     state_2.power = Some(format!("on"));
+    ///     state_2.selector = Some("id:xyz".to_string());
+    ///     state_2.power = Some("on".to_string());
     ///     
     ///     set_states.states = Some(states);
     ///     set_states.defaults = Some(defaults);
     ///     
-    ///     lifx::Light::async_set_states(key.clone(), set_states).await;
+    ///     let result = lifx::Light::async_set_states(config, set_states).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_set_states(config: LifxConfig, states: States) ->  Result<LiFxResults, reqwest::Error>{
@@ -1849,29 +1738,27 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut delta = lifx::StateDelta::new();
-    ///     delta.duration = Some(0);
-    ///     delta.power = Some(format!("on"));
+    ///     delta.duration = Some(0.0);
+    ///     delta.power = Some("on".to_string());
     ///     
     ///     // Send StateDelta
-    ///     lifx::Light::async_state_delta_by_selector(key.clone(), format!("all"), toggle).await;
+    ///     let result = lifx::Light::async_state_delta_by_selector(config, "all".to_string(), delta).await?;
+    ///     println!("{:?}", result);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_state_delta_by_selector(config: LifxConfig, selector: String, delta: StateDelta) ->  Result<LiFxResults, reqwest::Error>{
@@ -1926,38 +1813,30 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut toggle = lifx::Toggle::new();
-    ///             toggle.duration = Some(0);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.async_toggle(key.clone(), clean.clone()).await;
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::async_list_all(config.clone()).await?;
+    ///     println!("{:?}",lights.clone());
+    /// 
+    ///     let mut toggle = lifx::Toggle::new();
+    ///     toggle.duration = Some(0);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.async_toggle(config.clone(), toggle.clone()).await?;
+    ///         println!("{:?}",results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_toggle(&self, config: LifxConfig, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
@@ -1975,27 +1854,24 @@ impl Light {
     /// # Examples
     ///
     /// ```
-    /// extern crate lifx_rs;
+    /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let mut toggle = lifx_rs::Toggle::new();
+    ///     let mut toggle = lifx::Toggle::new();
     ///     toggle.duration = Some(0);
     ///     
     ///     // Toggle all lights
-    ///     lifx_rs::Light::async_toggle_by_selector(key.clone(), format!("all"), toggle).await?;
+    ///     lifx::Light::async_toggle_by_selector(config, format!("all"), toggle).await?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_toggle_by_selector(config: LifxConfig, selector: String, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
@@ -2056,41 +1932,33 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut breathe = lifx::BreatheEffect::new();
-    ///             breathe.color = Some(format!("red"));
-    ///             breathe.from_color = Some(format!("green"));
-    ///             breathe.period = Some(10);
-    ///             breathe.persist = Some(true);
-    ///             breathe.power_on = Some(true);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.breathe_effect(key.clone(), breathe.clone());
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
+    /// 
+    ///     let mut breathe = lifx::BreatheEffect::new();
+    ///     breathe.color = Some("red".to_string());
+    ///     breathe.from_color = Some("green".to_string());
+    ///     breathe.period = Some(10.0);
+    ///     breathe.persist = Some(true);
+    ///     breathe.power_on = Some(true);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.breathe_effect(config.clone(), breathe.clone());
+    ///         println!("{:?}",results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn breathe_effect(&self, config: LifxConfig, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2107,31 +1975,28 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut breathe = lifx::BreatheEffect::new();
-    ///     breathe.color = Some(format!("red"));
-    ///     breathe.from_color = Some(format!("green"));
-    ///     breathe.period = Some(10);
+    ///     breathe.color = Some("red".to_string());
+    ///     breathe.from_color = Some("green".to_string());
+    ///     breathe.period = Some(10.0);
     ///     breathe.persist = Some(true);
     ///     breathe.power_on = Some(true);
     ///     
     ///     // Apply breathe effect to all light(s)
-    ///     lifx::Light::breathe_by_selector_effect(key.clone(), format!("all"), breathe);
+    ///     lifx::Light::breathe_by_selector_effect(config, format!("all"), breathe)?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn breathe_by_selector_effect(config: LifxConfig, selector: String, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2184,38 +2049,30 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut clean = lifx::Clean::new();
-    ///             clean.duration = Some(0);
-    ///             clean.stop = Some(false);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.clean(key.clone(), clean.clone());
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
+    /// 
+    ///     let mut clean = lifx::Clean::new();
+    ///     clean.duration = Some(0);
+    ///     clean.stop = Some(false);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.clean(config.clone(), clean.clone());
+    ///         println!("{:?}",results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn clean(&self, config: LifxConfig, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
@@ -2232,28 +2089,25 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut clean = lifx::Clean::new();
     ///     clean.duration = Some(0);
     ///     clean.stop = Some(false);
     ///     
     ///     // Set all light to clean mode
-    ///     lifx::Light::clean_by_selector(key.clone(), format!("all"), clean);
+    ///     lifx::Light::clean_by_selector(config.clone(), format!("all"), clean);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn clean_by_selector(config: LifxConfig, selector: String, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
@@ -2306,37 +2160,29 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
     ///     
     ///             let mut effects_off = lifx::EffectsOff::new();
     ///             effects_off.power_off = Some(true);
     ///         
     ///             for light in lights {
-    ///                 let results = light.effects_off(key.clone(), effects_off.clone());
+    ///                 let results = light.effects_off(config.clone(), effects_off.clone());
     ///                 println!("{:?}",results);
     ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
-    ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn effects_off(&self, config: LifxConfig, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
@@ -2353,27 +2199,24 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut effects_off = lifx::EffectsOff::new();
     ///     effects_off.power_off = Some(true);
     ///     
     ///     // Send morph effect to all lights
-    ///     lifx::Light::effects_off_by_selector(key.clone(), format!("all"), effects_off);
+    ///     lifx::Light::effects_off_by_selector(config.clone(), format!("all"), effects_off);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn effects_off_by_selector(config: LifxConfig, selector: String, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
@@ -2426,39 +2269,31 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
     ///     
     ///             let mut flame_effect = lifx::FlameEffect::new();
     ///             flame_effect.period = Some(10);
-    ///             flame_effect.duration = Some(0);
+    ///             flame_effect.duration = Some(0.0);
     ///             flame_effect.power_on = Some(true);
     ///         
     ///             for light in lights {
-    ///                 let results = light.flame_effect(key.clone(), flame_effect.clone());
+    ///                 let results = light.flame_effect(config.clone(), flame_effect.clone());
     ///                 println!("{:?}",results);
     ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
-    ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn flame_effect(&self, config: LifxConfig, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2475,29 +2310,26 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut flame_effect = lifx::FlameEffect::new();
     ///     flame_effect.period = Some(10);
-    ///     flame_effect.duration = Some(0);
+    ///     flame_effect.duration = Some(0.0);
     ///     flame_effect.power_on = Some(true);
     ///     
     ///     // Send morph effect to all lights
-    ///     lifx::Light::flame_effect_by_selector(key.clone(), format!("all"), flame_effect);
+    ///     lifx::Light::flame_effect_by_selector(config.clone(), format!("all"), flame_effect);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn flame_effect_by_selector(config: LifxConfig, selector: String, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2548,23 +2380,20 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config)?;
+    ///     let lights = lifx::Light::list_all(config)?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn list_all(config: LifxConfig) -> Result<Lights, reqwest::Error> {
@@ -2580,23 +2409,20 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_by_selector(key, format!("all"))?;
+    ///     let lights = lifx::Light::list_by_selector(config, format!("all"))?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn list_by_selector(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
@@ -2638,30 +2464,23 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
     ///     
     ///             let mut morph_effect = lifx::MorphEffect::new();
     ///             morph_effect.period = Some(10);
-    ///             morph_effect.duration = Some(0);
+    ///             morph_effect.duration = Some(0.0);
     /// 
     ///             let mut palette: Vec<String> = Vec::new();
     ///             palette.push(format!("red"));
@@ -2671,12 +2490,11 @@ impl Light {
     ///             morph_effect.power_on = Some(true);
     ///         
     ///             for light in lights {
-    ///                 let results = light.morph_effect(key.clone(), morph_effect.clone());
+    ///                 let results = light.morph_effect(config.clone(), morph_effect.clone());
     ///                 println!("{:?}",results);
     ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
-    ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn morph_effect(&self, config: LifxConfig, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2693,25 +2511,20 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut morph_effect = lifx::MorphEffect::new();
     ///     morph_effect.period = Some(10);
-    ///     morph_effect.duration = Some(0);
+    ///     morph_effect.duration = Some(0.0);
     /// 
     ///     let mut palette: Vec<String> = Vec::new();
     ///     palette.push(format!("red"));
@@ -2721,7 +2534,9 @@ impl Light {
     ///     morph_effect.power_on = Some(true);
     ///     
     ///     // Send morph effect to all lights
-    ///     lifx::Light::morph_effect_by_selector(key.clone(), format!("all"), morph_effect);
+    ///     lifx::Light::morph_effect_by_selector(config.clone(), format!("all"), morph_effect);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn morph_effect_by_selector(config: LifxConfig, selector: String, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2765,40 +2580,32 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
     ///     
     ///             let mut move_effect = lifx::MoveEffect::new();
-    ///             move_effect.direction = Some(format!("forward")); // or backward
+    ///             move_effect.direction = Some("forward".to_string()); // or backward
     ///             move_effect.period = Some(10);
     ///             move_effect.cycles = Some(0.9);
     ///             move_effect.power_on = Some(true);
     ///         
     ///             for light in lights {
-    ///                 let results = light.move_effect(key.clone(), move_effect.clone());
+    ///                 let results = light.move_effect(config.clone(), move_effect.clone());
     ///                 println!("{:?}",results);
     ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
-    ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn move_effect(&self, config: LifxConfig, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2815,30 +2622,27 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut move_effect = lifx::MoveEffect::new();
-    ///     move_effect.direction = Some(format!("forward")); // or backward
+    ///     move_effect.direction = Some("forward".to_string()); // or backward
     ///     move_effect.period = Some(10);
     ///     move_effect.cycles = Some(0.9);
     ///     move_effect.power_on = Some(true);
     ///     
     ///     // Toggle all lights
-    ///     lifx::Light::move_effect_by_selector(key.clone(), format!("all"), move_effect);
+    ///     lifx::Light::move_effect_by_selector(config.clone(), format!("all"), move_effect);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn move_effect_by_selector(config: LifxConfig, selector: String, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2880,41 +2684,33 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
     ///     
     ///             let mut pulse = lifx::PulseEffect::new();
-    ///             pulse.color = Some(format!("red"));
-    ///             pulse.from_color = Some(format!("green"));
-    ///             pulse.period = Some(10);
+    ///             pulse.color = Some("red".to_string());
+    ///             pulse.from_color = Some("green".to_string());
+    ///             pulse.period = Some(10.0);
     ///             pulse.persist = Some(true);
     ///             pulse.power_on = Some(true);
     ///         
     ///             for light in lights {
-    ///                 let results = light.pulse_effect(key.clone(), pulse.clone());
+    ///                 let results = light.pulse_effect(config.clone(), pulse.clone());
     ///                 println!("{:?}",results);
     ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
-    ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn pulse_effect(&self, config: LifxConfig, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -2931,31 +2727,28 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut pulse = lifx::PulseEffect::new();
-    ///     pulse.color = Some(format!("red"));
-    ///     pulse.from_color = Some(format!("green"));
-    ///     pulse.period = Some(10);
+    ///     pulse.color = Some("red".to_string());
+    ///     pulse.from_color = Some("green".to_string());
+    ///     pulse.period = Some(10.0);
     ///     pulse.persist = Some(true);
     ///     pulse.power_on = Some(true);
     ///     
     ///     // Toggle all lights
-    ///     lifx::Light::pulse_effect_by_selector(key.clone(), format!("all"), pulse);
+    ///     lifx::Light::pulse_effect_by_selector(config.clone(), format!("all"), pulse);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn pulse_effect_by_selector(config: LifxConfig, selector: String, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
@@ -3003,38 +2796,30 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
     ///     
     ///             let mut state = lifx::State::new();
-    ///             state.power = Some(format!("on"));
+    ///             state.power = Some("on".to_string());
     ///             state.brightness = Some(1.0);
     ///         
     ///             for light in lights {
-    ///                 let results = light.set_state(key.clone(), state.clone());
+    ///                 let results = light.set_state(config.clone(), state.clone());
     ///                 println!("{:?}",results);
     ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
-    ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn set_state(&self, config: LifxConfig, state: State) ->  Result<LiFxResults, reqwest::Error>{
@@ -3051,27 +2836,24 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut off_state = lifx::State::new();
-    ///     off_state.power = Some(format!("off"));
+    ///     off_state.power = Some("off".to_string());
     ///     
     ///     // Turn off all lights
-    ///     lifx::Light::set_state_by_selector(key.clone(), format!("all"), off_state);
+    ///     lifx::Light::set_state_by_selector(config.clone(), format!("all"), off_state);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn set_state_by_selector(config: LifxConfig, selector: String, state: State) ->  Result<LiFxResults, reqwest::Error>{
@@ -3121,21 +2903,16 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut set_states = lifx::States::new();
     ///     let mut states: Vec<lifx::State> = Vec::new();
@@ -3144,17 +2921,19 @@ impl Light {
     ///     defaults.brightness = Some(1.0);
     ///     
     ///     let mut state_1 = lifx::State::new();
-    ///     state_1.selector = Some(format!("id:xxx"));
-    ///     state_1.power = Some(format!("on"));
+    ///     state_1.selector = Some("id:xxx".to_string());
+    ///     state_1.power = Some("on".to_string());
     ///     
     ///     let mut state_2 = lifx::State::new();
-    ///     state_2.selector = Some(format!("id:xyz"));
-    ///     state_2.power = Some(format!("on"));
+    ///     state_2.selector = Some("id:xyz".to_string());
+    ///     state_2.power = Some("on".to_string());
     ///     
     ///     set_states.states = Some(states);
     ///     set_states.defaults = Some(defaults);
     ///     
-    ///     lifx::Light::set_states(key.clone(), set_states);
+    ///     lifx::Light::set_states(config.clone(), set_states);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn set_states(config: LifxConfig, states: States) ->  Result<LiFxResults, reqwest::Error>{
@@ -3207,28 +2986,25 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut delta = lifx::StateDelta::new();
-    ///     delta.duration = Some(0);
-    ///     delta.power = Some(format!("on"));
+    ///     delta.duration = Some(0.0);
+    ///     delta.power = Some("on".to_string());
     ///     
     ///     // Send StateDelta
-    ///     lifx::Light::state_delta_by_selector(key.clone(), format!("all"), toggle);
+    ///     lifx::Light::state_delta_by_selector(config, format!("all"), delta)?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn state_delta_by_selector(config: LifxConfig, selector: String, delta: StateDelta) ->  Result<LiFxResults, reqwest::Error>{
@@ -3281,37 +3057,29 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let all_lights = lifx::Light::list_all(config.clone());
-    ///     match all_lights {
-    ///         Ok(lights) => {
-    ///             println!("{:?}",lights.clone());
-    ///     
-    ///             let mut toggle = lifx::Toggle::new();
-    ///             toggle.duration = Some(0);
-    ///         
-    ///             for light in lights {
-    ///                 let results = light.toggle(key.clone(), clean.clone());
-    ///                 println!("{:?}",results);
-    ///             }
-    ///         },
-    ///         Err(e) => println!("{}",e)
+    ///     let lights = lifx::Light::list_all(config.clone())?;
+    ///     println!("{:?}",lights.clone());
+    /// 
+    ///     let mut toggle = lifx::Toggle::new();
+    ///     toggle.duration = Some(0);
+    /// 
+    ///     for light in lights {
+    ///         let results = light.toggle(config.clone(), toggle.clone());
+    ///         println!("{:?}",results);
     ///     }
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn toggle(&self, config: LifxConfig, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
@@ -3328,27 +3096,24 @@ impl Light {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut toggle = lifx::Toggle::new();
     ///     toggle.duration = Some(0);
     ///     
     ///     // Toggle all lights
-    ///     lifx::Light::toggle_by_selector(key.clone(), format!("all"), toggle);
+    ///     lifx::Light::toggle_by_selector(config, format!("all"), toggle)?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn toggle_by_selector(config: LifxConfig, selector: String, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
@@ -3419,24 +3184,21 @@ impl Scene {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let scenes = lifx::Scene::async_list(config).await?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_list(config: LifxConfig) -> Result<Scenes, reqwest::Error> {
@@ -3477,23 +3239,20 @@ impl Scene {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let scenes = lifx::Scene::list_all(config)?;
+    ///     let scenes = lifx::Scene::list(config)?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn list(config: LifxConfig) -> Result<Scenes, reqwest::Error> {
@@ -3549,24 +3308,21 @@ impl Color {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
     /// #[tokio::main]
-    /// async fn main() {
+    /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let scenes = lifx::Color::async_validate(key, format!("red")).await?;
+    ///     let scenes = lifx::Color::async_validate(config, format!("red")).await?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub async fn async_validate(config: LifxConfig, color: String) -> Result<Color, reqwest::Error> {
@@ -3606,23 +3362,20 @@ impl Color {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
-    ///     let scenes = lifx::Color::validate(config)?;
+    ///     let scenes = lifx::Color::validate(config, format!("red"))?;
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn validate(config: LifxConfig, color: String) -> Result<Color, reqwest::Error> {
@@ -3715,24 +3468,21 @@ impl State {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut state = lifx::State::new();
-    ///     state.power = Some(format!("off"));
+    ///     state.power = Some("off".to_string());
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -3794,24 +3544,21 @@ impl Toggle {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut toggle = lifx::Toggle::new();
     ///     toggle.duration = Some(0);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -3845,23 +3592,20 @@ impl States {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut states = lifx::States::new();
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -3898,24 +3642,21 @@ impl StateDelta {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut delta = lifx::StateDelta::new();
-    ///     delta.duration = Some(0);
+    ///     delta.duration = Some(0.0);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -4002,28 +3743,25 @@ impl BreatheEffect {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut breathe = lifx::BreatheEffect::new();
-    ///     breathe.color = Some(format!("red"));
-    ///     breathe.from_color = Some(format!("green"));
-    ///     breathe.period = Some(10);
+    ///     breathe.color = Some("red".to_string());
+    ///     breathe.from_color = Some("green".to_string());
+    ///     breathe.period = Some(10.0);
     ///     breathe.persist = Some(true);
     ///     breathe.power_on = Some(true);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -4100,27 +3838,24 @@ impl MoveEffect {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut move_effect = lifx::MoveEffect::new();
-    ///     move_effect.direction = Some(format!("forward")); // or backward
+    ///     move_effect.direction = Some("forward".to_string()); // or backward
     ///     move_effect.period = Some(10);
     ///     move_effect.cycles = Some(0.9);
     ///     move_effect.power_on = Some(true);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -4189,33 +3924,29 @@ impl MorphEffect {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut morph_effect = lifx::MorphEffect::new();
     ///     morph_effect.period = Some(10);
-    ///     morph_effect.duration = Some(0);
+    ///     morph_effect.duration = Some(0.0);
     /// 
     ///     let mut palette: Vec<String> = Vec::new();
-    ///     palette.push("red");
-    ///     palette.push("green");
+    ///     palette.push("red".to_string());
+    ///     palette.push("green".to_string());
     /// 
     ///     morph_effect.palette = Some(palette);
     ///     morph_effect.power_on = Some(true);
-    /// 
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -4284,28 +4015,25 @@ impl PulseEffect {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut pulse = lifx::PulseEffect::new();
-    ///     pulse.color = Some(format!("red"));
-    ///     pulse.from_color = Some(format!("green"));
-    ///     pulse.period = Some(10);
+    ///     pulse.color = Some("red".to_string());
+    ///     pulse.from_color = Some("green".to_string());
+    ///     pulse.period = Some(10.0);
     ///     pulse.persist = Some(true);
     ///     pulse.power_on = Some(true);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -4368,24 +4096,21 @@ impl EffectsOff {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut ef = lifx::EffectsOff::new();
     ///     ef.power_off = Some(true);
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -4430,27 +4155,23 @@ impl FlameEffect {
     /// 
     /// # Examples
     ///
-    /// ```
+    /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
     /// 
-    /// fn main() {
+    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// 
     ///     let key = "xxx".to_string();
-    ///     let mut api_endpoints: Vec<String> = Vec::new();
     ///
-    ///     api_endpoints.push(format!("https://api.lifx.com"));
-    ///     api_endpoints.push(format!("http://localhost:8089"));
-    ///
-    ///     let config = lifx::LifxConfig{
-    ///        access_token: key.clone(),
-    ///        api_endpoints: api_endpoints
-    ///     };
+    ///     let config = lifx::LifxConfig::new(key)
+    ///         .add_endpoint("https://api.lifx.com".to_string())
+    ///         .add_endpoint("http://localhost:8089".to_string());
     /// 
     ///     let mut flame_effect = lifx::FlameEffect::new();
     ///     flame_effect.period = Some(10);
-    ///     flame_effect.duration = Some(0);
+    ///     flame_effect.duration = Some(0.0);
     ///     flame_effect.power_on = Some(true);
-    /// 
+    ///
+    ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
@@ -4503,7 +4224,7 @@ impl FlameEffect {
 /// # Example
 /// ```ignore
 /// let mut flame_effect = lifx::FlameEffect::new();
-/// flame_effect.period = Some(5);
+/// flame_effect.period = Some(5.0);
 /// flame_effect.duration = Some(10.0); // Will auto-cleanup after 10 seconds
 /// 
 /// let (effect_result, cleanup_result) = lifx::flame_effect_with_cleanup(
@@ -4550,7 +4271,7 @@ pub fn flame_effect_with_cleanup(
 /// # Example
 /// ```ignore
 /// let mut morph_effect = lifx::MorphEffect::new();
-/// morph_effect.period = Some(5);
+/// morph_effect.period = Some(5.0);
 /// morph_effect.duration = Some(10.0); // Will auto-cleanup after 10 seconds
 /// 
 /// let (effect_result, cleanup_result) = lifx::morph_effect_with_cleanup(
