@@ -4829,14 +4829,15 @@ mod tests {
         effect.duration = Some(10.0);
         effect.power_on = Some(true);
         
-        let palette = effect.palette.as_ref().expect("Palette should be Some after being set");
-        assert_eq!(palette.len(), 3);
-        assert_eq!(palette[0], "red");
-        assert_eq!(palette[1], "blue");
-        assert_eq!(palette[2], "green");
-        assert_eq!(effect.period, Some(3));
-        assert_eq!(effect.duration, Some(10.0));
-        assert_eq!(effect.power_on, Some(true));
+        assert!(effect.palette.is_some(), "Palette should be Some after being set");
+        let palette = effect.palette.as_ref().unwrap();
+        assert_eq!(palette.len(), 3, "Palette should contain exactly 3 colors");
+        assert_eq!(palette[0], "red", "First color should be red");
+        assert_eq!(palette[1], "blue", "Second color should be blue");
+        assert_eq!(palette[2], "green", "Third color should be green");
+        assert_eq!(effect.period, Some(3), "Period should be 3");
+        assert_eq!(effect.duration, Some(10.0), "Duration should be 10.0");
+        assert_eq!(effect.power_on, Some(true), "Power should be on");
     }
 
     #[test]
@@ -4894,10 +4895,11 @@ mod tests {
         
         states.states = Some(vec![state1, state2]);
         
-        let states_vec = states.states.as_ref().expect("States should be Some after being set");
-        assert_eq!(states_vec.len(), 2);
-        assert_eq!(states_vec[0].power, Some("on".to_string()));
-        assert_eq!(states_vec[1].power, Some("off".to_string()));
+        assert!(states.states.is_some(), "States should be Some after being set");
+        let states_vec = states.states.as_ref().unwrap();
+        assert_eq!(states_vec.len(), 2, "States vector should contain exactly 2 states");
+        assert_eq!(states_vec[0].power, Some("on".to_string()), "First state power should be 'on'");
+        assert_eq!(states_vec[1].power, Some("off".to_string()), "Second state power should be 'off'");
     }
 
     #[test]
@@ -5027,12 +5029,12 @@ mod tests {
             error: None,
         };
         
-        assert!(results.results.is_some());
-        let results_vec = results.results.expect("Results should be Some after being set");
-        assert_eq!(results_vec.len(), 2);
-        assert_eq!(results_vec[0].id, "id1");
-        assert_eq!(results_vec[1].label, "Light 2");
-        assert!(results.error.is_none());
+        assert!(results.results.is_some(), "Results should be Some");
+        let results_vec = results.results.unwrap();
+        assert_eq!(results_vec.len(), 2, "Results vector should contain exactly 2 results");
+        assert_eq!(results_vec[0].id, "id1", "First result ID should be 'id1'");
+        assert_eq!(results_vec[1].label, "Light 2", "Second result label should be 'Light 2'");
+        assert!(results.error.is_none(), "Error field should be None when results are present");
     }
 
     #[test]
@@ -5042,9 +5044,9 @@ mod tests {
             error: Some("API Error".to_string()),
         };
         
-        assert!(results.results.is_none());
-        assert!(results.error.is_some());
-        assert_eq!(results.error.expect("Error should be Some after being set"), "API Error");
+        assert!(results.results.is_none(), "Results should be None when error is present");
+        assert!(results.error.is_some(), "Error should be Some when API error occurs");
+        assert_eq!(results.error.unwrap(), "API Error", "Error message should be 'API Error'");
     }
 
     #[test]
