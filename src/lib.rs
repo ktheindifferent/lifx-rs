@@ -403,7 +403,8 @@ impl LifxConfig {
     
     /// Initialize health tracking for all endpoints
     pub fn init_health_tracking(&self) {
-        let mut health = self.endpoint_health.lock().unwrap();
+        let mut health = self.endpoint_health.lock()
+            .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
         for endpoint in &self.api_endpoints {
             health.entry(endpoint.clone())
                 .or_insert_with(|| EndpointHealth::new(endpoint.clone()));
@@ -432,7 +433,8 @@ impl LifxConfig {
             },
             FailoverStrategy::FastestFirst => {
                 // Sort by response time and return fastest
-                let health = self.endpoint_health.lock().unwrap();
+                let health = self.endpoint_health.lock()
+                    .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
                 let mut endpoints_with_time: Vec<(String, Option<u64>)> = self.api_endpoints
                     .iter()
                     .map(|ep| {
@@ -450,7 +452,8 @@ impl LifxConfig {
     
     /// Get all healthy endpoints
     pub fn get_healthy_endpoints(&self) -> Vec<String> {
-        let health = self.endpoint_health.lock().unwrap();
+        let health = self.endpoint_health.lock()
+            .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
         self.api_endpoints
             .iter()
             .filter(|ep| {
@@ -468,7 +471,8 @@ impl LifxConfig {
             FailoverStrategy::Failover => {
                 // Healthy endpoints first, then unhealthy with exponential backoff
                 let mut healthy = self.get_healthy_endpoints();
-                let health = self.endpoint_health.lock().unwrap();
+                let health = self.endpoint_health.lock()
+                    .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
                 let mut unhealthy: Vec<String> = self.api_endpoints
                     .iter()
                     .filter(|ep| !healthy.contains(ep))
@@ -488,7 +492,8 @@ impl LifxConfig {
     
     /// Mark an endpoint as successful
     pub fn mark_endpoint_success(&self, endpoint: &str, response_time: Duration) {
-        let mut health = self.endpoint_health.lock().unwrap();
+        let mut health = self.endpoint_health.lock()
+            .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
         health.entry(endpoint.to_string())
             .or_insert_with(|| EndpointHealth::new(endpoint.to_string()))
             .mark_success(response_time);
@@ -496,7 +501,8 @@ impl LifxConfig {
     
     /// Mark an endpoint as failed
     pub fn mark_endpoint_failure(&self, endpoint: &str) {
-        let mut health = self.endpoint_health.lock().unwrap();
+        let mut health = self.endpoint_health.lock()
+            .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
         health.entry(endpoint.to_string())
             .or_insert_with(|| EndpointHealth::new(endpoint.to_string()))
             .mark_failure();
@@ -541,15 +547,23 @@ impl LifxConfig {
                         match tokio::time::timeout(timeout, f(ep.clone(), token)).await {
                             Ok(result) => result,
                             Err(_) => {
-                                // Return a timeout error by creating a client that times out immediately
-                                let client = reqwest::Client::builder()
+                                // Return a timeout error
+                                match reqwest::Client::builder()
                                     .timeout(Duration::from_millis(1))
                                     .build()
-                                    .unwrap();
-                                client.get(&format!("http://{}/timeout", ep))
-                                    .send().await
-                                    .and_then(|_| client.get("http://timeout").build().map_err(Into::into))
-                                    .and_then(|_| unreachable!())
+                                {
+                                    Ok(client) => {
+                                        // Create a request that will timeout
+                                        client.get(&format!("http://{}/timeout", ep))
+                                            .send().await
+                                            .and_then(|_| client.get("http://timeout").build().map_err(Into::into))
+                                            .and_then(|_| unreachable!())
+                                    },
+                                    Err(e) => {
+                                        // Return the client builder error
+                                        Err(e)
+                                    }
+                                }
                             }
                         }
                     }) as BoxFuture<'static, Result<T, reqwest::Error>>
@@ -5408,5 +5422,86 @@ mod tests {
         assert_eq!(deserialized.access_token, config.access_token);
         assert_eq!(deserialized.api_endpoints, config.api_endpoints);
         assert_eq!(deserialized.failover_config.strategy, config.failover_config.strategy);
+    }
+
+    // Tests for error handling improvements
+    #[test]
+    fn test_mutex_error_handling() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api.lifx.com".to_string());
+        
+        // Test that init_health_tracking doesn't panic
+        config.init_health_tracking();
+        
+        // Test that get_healthy_endpoints doesn't panic
+        let healthy = config.get_healthy_endpoints();
+        assert_eq!(healthy.len(), 1);
+        
+        // Test mark_endpoint_success doesn't panic
+        config.mark_endpoint_success("https://api.lifx.com", Duration::from_millis(100));
+        
+        // Test mark_endpoint_failure doesn't panic
+        config.mark_endpoint_failure("https://api.lifx.com");
+    }
+
+    #[test]
+    fn test_get_next_endpoint_with_mutex() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::FastestFirst);
+        
+        config.init_health_tracking();
+        
+        // Test FastestFirst strategy doesn't panic when accessing mutex
+        let endpoint = config.get_next_endpoint();
+        assert!(endpoint.is_some());
+    }
+
+    #[test]
+    fn test_get_prioritized_endpoints_with_mutex() {
+        let config = LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api1.lifx.com".to_string())
+            .add_endpoint("https://api2.lifx.com".to_string())
+            .with_strategy(FailoverStrategy::Failover);
+        
+        config.init_health_tracking();
+        
+        // Mark one endpoint as failed
+        config.mark_endpoint_failure("https://api1.lifx.com");
+        config.mark_endpoint_failure("https://api1.lifx.com");
+        config.mark_endpoint_failure("https://api1.lifx.com");
+        
+        // Test that get_prioritized_endpoints doesn't panic
+        let endpoints = config.get_prioritized_endpoints();
+        assert!(!endpoints.is_empty());
+    }
+
+    #[test]
+    #[should_panic(expected = "Failed to acquire endpoint_health mutex lock: mutex was poisoned")]
+    fn test_mutex_poisoning_behavior() {
+        use std::panic;
+        use std::sync::Arc;
+        use std::thread;
+
+        let config = Arc::new(LifxConfig::new("test_token".to_string())
+            .add_endpoint("https://api.lifx.com".to_string()));
+        
+        config.init_health_tracking();
+        
+        let config_clone = config.clone();
+        
+        // Create a thread that will panic while holding the mutex
+        let handle = thread::spawn(move || {
+            let _guard = config_clone.endpoint_health.lock()
+                .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
+            panic!("Intentionally poisoning the mutex");
+        });
+        
+        // Wait for the thread to panic
+        let _ = handle.join();
+        
+        // This should now panic with our custom message
+        config.get_healthy_endpoints();
     }
 }

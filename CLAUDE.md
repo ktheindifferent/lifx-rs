@@ -189,6 +189,29 @@ The library supports multiple API endpoints, allowing fallback from cloud to loc
 - Protocol errors for invalid messages
 - Validation errors for invalid parameters
 
+#### Error Handling Patterns (Updated)
+**Mutex Lock Handling:**
+- All mutex `.lock()` calls use `.expect()` with descriptive error messages
+- Mutex poisoning is treated as a critical error that should panic with context
+- Example: `.lock().expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned")`
+
+**HTTP Client Builder Errors:**
+- Client builder errors are properly handled with pattern matching
+- No `.unwrap()` calls on `reqwest::Client::builder().build()`
+- Errors are propagated using `Result` types or handled with fallback logic
+
+**Testing Error Conditions:**
+- Tests verify that mutex operations don't panic under normal conditions
+- Specific test for mutex poisoning behavior with `#[should_panic]`
+- Tests ensure error handling code paths work correctly
+
+**Guidelines for Contributors:**
+1. Never use `.unwrap()` in production code paths
+2. Use `.expect()` with descriptive messages for unrecoverable errors
+3. Prefer `?` operator for error propagation in functions returning Result
+4. Add tests for both success and error conditions
+5. Document panic conditions in function documentation
+
 ## Future Improvements
 
 1. **Performance**: Implement connection pooling for HTTP clients
