@@ -680,8 +680,8 @@ impl Light {
         config: LifxConfig,
         breathe: BreatheEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_breathe_effect_by_selector(config, format!("id:{}", self.id), breathe)
-            .await;
+        Self::async_breathe_effect_by_selector(config, format!("id:{}", self.id), breathe)
+            .await
     }
 
     /// Asynchronously activate the breathe animation for the selected light(s)
@@ -814,7 +814,7 @@ impl Light {
         config: LifxConfig,
         clean: Clean,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_clean_by_selector(config, format!("id:{}", self.id), clean).await;
+        Self::async_clean_by_selector(config, format!("id:{}", self.id), clean).await
     }
 
     /// Asynchronously switch a selected LIFX object to clean mode, with a set duration.
@@ -937,8 +937,8 @@ impl Light {
         config: LifxConfig,
         effects_off: EffectsOff,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_effects_off_by_selector(config, format!("id:{}", self.id), effects_off)
-            .await;
+        Self::async_effects_off_by_selector(config, format!("id:{}", self.id), effects_off)
+            .await
     }
 
     /// Stops animation(s) for the selected light(s)
@@ -1068,12 +1068,12 @@ impl Light {
         config: LifxConfig,
         flame_effect: FlameEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_flame_effect_by_selector(
+        Self::async_flame_effect_by_selector(
             config,
             format!("id:{}", self.id),
             flame_effect,
         )
-        .await;
+        .await
     }
 
     /// Activate the flame animation for the selected light(s)
@@ -1188,7 +1188,7 @@ impl Light {
     /// }
     ///  ```
     pub async fn async_list_all(config: LifxConfig) -> Result<Lights, reqwest::Error> {
-        return Self::async_list_by_selector(config, format!("all")).await;
+        Self::async_list_by_selector(config, "all".to_string()).await
     }
 
     /// Asynchronously gets lights belonging to the authenticated account. Filtering the lights using selectors. Properties such as id, label, group and location can be used in selectors.
@@ -1333,12 +1333,12 @@ impl Light {
         config: LifxConfig,
         morph_effect: MorphEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_morph_effect_by_selector(
+        Self::async_morph_effect_by_selector(
             config,
             format!("id:{}", self.id),
             morph_effect,
         )
-        .await;
+        .await
     }
 
     /// Asynchronously activate the morph animation for the selected light(s)
@@ -1473,8 +1473,8 @@ impl Light {
         config: LifxConfig,
         move_effect: MoveEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_move_effect_by_selector(config, format!("id:{}", self.id), move_effect)
-            .await;
+        Self::async_move_effect_by_selector(config, format!("id:{}", self.id), move_effect)
+            .await
     }
 
     /// Asynchronously activate the move animation for the selected light(s)
@@ -1609,12 +1609,12 @@ impl Light {
         config: LifxConfig,
         pulse_effect: PulseEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_pulse_effect_by_selector(
+        Self::async_pulse_effect_by_selector(
             config,
             format!("id:{}", self.id),
             pulse_effect,
         )
-        .await;
+        .await
     }
 
     /// Asynchronously activate the pulse animation for the selected light(s)
@@ -1747,7 +1747,7 @@ impl Light {
         config: LifxConfig,
         state: State,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_set_state_by_selector(config, format!("id:{}", self.id), state).await;
+        Self::async_set_state_by_selector(config, format!("id:{}", self.id), state).await
     }
 
     /// Asynchronously sets the state for the selected LIFX object
@@ -1989,7 +1989,7 @@ impl Light {
                             let json = req.json::<LiFxResults>().await?;
                             Ok(json)
                         }
-                        Err(err2) => return Err(err2),
+                        Err(err2) => Err(err2),
                     }
                 } else {
                     Err(err)
@@ -2039,7 +2039,7 @@ impl Light {
         config: LifxConfig,
         toggle: Toggle,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::async_toggle_by_selector(config, format!("id:{}", self.id), toggle).await;
+        Self::async_toggle_by_selector(config, format!("id:{}", self.id), toggle).await
     }
 
     /// Turn off lights if any of them are on, or turn them on if they are all off.
@@ -2171,7 +2171,7 @@ impl Light {
         config: LifxConfig,
         breathe: BreatheEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::breathe_by_selector_effect(config, format!("id:{}", self.id), breathe);
+        Self::breathe_by_selector_effect(config, format!("id:{}", self.id), breathe)
     }
 
     /// Activate the breathe animation for the selected light(s)
@@ -2295,7 +2295,7 @@ impl Light {
     /// }
     ///  ```
     pub fn clean(&self, config: LifxConfig, clean: Clean) -> Result<LiFxResults, reqwest::Error> {
-        return Self::clean_by_selector(config, format!("id:{}", self.id), clean);
+        Self::clean_by_selector(config, format!("id:{}", self.id), clean)
     }
 
     /// This endpoint lets you switch a selected LIFX object to clean mode, with a set duration.
@@ -2413,7 +2413,7 @@ impl Light {
         config: LifxConfig,
         effects_off: EffectsOff,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::effects_off_by_selector(config, format!("id:{}", self.id), effects_off);
+        Self::effects_off_by_selector(config, format!("id:{}", self.id), effects_off)
     }
 
     /// Stops animation(s) for the selected light(s)
@@ -2538,7 +2538,7 @@ impl Light {
         config: LifxConfig,
         flame_effect: FlameEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::flame_effect_by_selector(config, format!("id:{}", self.id), flame_effect);
+        Self::flame_effect_by_selector(config, format!("id:{}", self.id), flame_effect)
     }
 
     /// Activate the flame animation for the selected light(s)
@@ -2648,7 +2648,7 @@ impl Light {
     /// }
     ///  ```
     pub fn list_all(config: LifxConfig) -> Result<Lights, reqwest::Error> {
-        return Self::list_by_selector(config, format!("all"));
+        Self::list_by_selector(config, "all".to_string())
     }
 
     /// Gets lights belonging to the authenticated account. Filtering the lights using selectors. Properties such as id, label, group and location can be used in selectors.
@@ -2761,7 +2761,7 @@ impl Light {
         config: LifxConfig,
         morph_effect: MorphEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::morph_effect_by_selector(config, format!("id:{}", self.id), morph_effect);
+        Self::morph_effect_by_selector(config, format!("id:{}", self.id), morph_effect)
     }
 
     /// Activate the morph animation for the selected light(s)
@@ -2891,7 +2891,7 @@ impl Light {
         config: LifxConfig,
         move_effect: MoveEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::move_effect_by_selector(config, format!("id:{}", self.id), move_effect);
+        Self::move_effect_by_selector(config, format!("id:{}", self.id), move_effect)
     }
 
     /// Activate the move animation for the selected light(s)
@@ -3017,7 +3017,7 @@ impl Light {
         config: LifxConfig,
         pulse_effect: PulseEffect,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::pulse_effect_by_selector(config, format!("id:{}", self.id), pulse_effect);
+        Self::pulse_effect_by_selector(config, format!("id:{}", self.id), pulse_effect)
     }
 
     /// Activate the pulse animation for the selected light(s)
@@ -3141,7 +3141,7 @@ impl Light {
         config: LifxConfig,
         state: State,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::set_state_by_selector(config, format!("id:{}", self.id), state);
+        Self::set_state_by_selector(config, format!("id:{}", self.id), state)
     }
 
     /// Sets the state for the selected LIFX object
@@ -3419,7 +3419,7 @@ impl Light {
         config: LifxConfig,
         toggle: Toggle,
     ) -> Result<LiFxResults, reqwest::Error> {
-        return Self::toggle_by_selector(config, format!("id:{}", self.id), toggle);
+        Self::toggle_by_selector(config, format!("id:{}", self.id), toggle)
     }
 
     /// Turn off lights if any of them are on, or turn them on if they are all off.
@@ -3783,24 +3783,18 @@ pub struct Clean {
 }
 impl Clean {
     pub fn new() -> Self {
-        return Clean {
+        Clean {
             stop: None,
             duration: None,
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.stop {
-            Some(stop) => params.push(("stop".to_string(), stop.to_string())),
-            None => {}
-        }
-        match &self.duration {
-            Some(duration) => params.push(("duration".to_string(), duration.to_string())),
-            None => {}
-        }
+        if let Some(stop) = &self.stop { params.push(("stop".to_string(), stop.to_string())) }
+        if let Some(duration) = &self.duration { params.push(("duration".to_string(), duration.to_string())) }
 
-        return params;
+        params
     }
 }
 
@@ -3846,7 +3840,7 @@ impl State {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return State {
+        State {
             power: None,
             color: None,
             brightness: None,
@@ -3854,40 +3848,19 @@ impl State {
             infrared: None,
             selector: None,
             fast: None,
-        };
+        }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.power {
-            Some(power) => params.push(("power".to_string(), power.to_string())),
-            None => {}
-        }
-        match &self.color {
-            Some(color) => params.push(("color".to_string(), color.to_string())),
-            None => {}
-        }
-        match &self.brightness {
-            Some(brightness) => params.push(("brightness".to_string(), brightness.to_string())),
-            None => {}
-        }
-        match &self.duration {
-            Some(duration) => params.push(("duration".to_string(), duration.to_string())),
-            None => {}
-        }
-        match &self.infrared {
-            Some(infrared) => params.push(("infrared".to_string(), infrared.to_string())),
-            None => {}
-        }
-        match &self.selector {
-            Some(selector) => params.push(("selector".to_string(), selector.to_string())),
-            None => {}
-        }
-        match &self.fast {
-            Some(fast) => params.push(("fast".to_string(), fast.to_string())),
-            None => {}
-        }
-        return params;
+        if let Some(power) = &self.power { params.push(("power".to_string(), power.to_string())) }
+        if let Some(color) = &self.color { params.push(("color".to_string(), color.to_string())) }
+        if let Some(brightness) = &self.brightness { params.push(("brightness".to_string(), brightness.to_string())) }
+        if let Some(duration) = &self.duration { params.push(("duration".to_string(), duration.to_string())) }
+        if let Some(infrared) = &self.infrared { params.push(("infrared".to_string(), infrared.to_string())) }
+        if let Some(selector) = &self.selector { params.push(("selector".to_string(), selector.to_string())) }
+        if let Some(fast) = &self.fast { params.push(("fast".to_string(), fast.to_string())) }
+        params
     }
 }
 
@@ -3920,7 +3893,7 @@ impl Toggle {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return Toggle { duration: None };
+        Toggle { duration: None }
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
@@ -4762,6 +4735,138 @@ pub struct LiFxResult {
     pub id: String,
     pub label: String,
     pub status: String,
+}
+
+/// Configuration for retry behavior with exponential backoff
+///
+/// This struct controls how failed API calls are retried with exponential backoff
+/// to gracefully handle transient failures and avoid overwhelming the API.
+///
+/// # Examples
+///
+/// Create a standard retry configuration:
+/// ```rust,no_run
+/// use lifx_rs::RetryConfig;
+///
+/// let retry_config = RetryConfig {
+///     max_retries: 3,
+///     initial_backoff_ms: 100,
+///     max_backoff_ms: 5000,
+///     backoff_multiplier: 2.0,
+/// };
+/// ```
+///
+/// The backoff time grows exponentially: 100ms, 200ms, 400ms, etc., until reaching the max.
+pub struct RetryConfig {
+    /// Maximum number of retry attempts after initial failure
+    pub max_retries: u32,
+    /// Initial backoff time in milliseconds
+    pub initial_backoff_ms: u64,
+    /// Maximum backoff time in milliseconds
+    pub max_backoff_ms: u64,
+    /// Multiplier for exponential backoff (typically 2.0)
+    pub backoff_multiplier: f64,
+}
+
+impl Default for RetryConfig {
+    fn default() -> Self {
+        RetryConfig {
+            max_retries: 3,
+            initial_backoff_ms: 100,
+            max_backoff_ms: 5000,
+            backoff_multiplier: 2.0,
+        }
+    }
+}
+
+/// Retry helper function with exponential backoff
+///
+/// This helper executes a closure with automatic retry logic using exponential backoff.
+/// It's useful for handling transient network failures gracefully.
+///
+/// # Arguments
+///
+/// * `config` - The retry configuration (max attempts, backoff settings)
+/// * `operation` - A closure that performs the operation and returns Result<T, E>
+///
+/// # Type Parameters
+///
+/// * `T` - The success type returned by the operation
+/// * `E` - The error type; must be convertible to String for logging/context
+///
+/// # Errors
+///
+/// Returns the last error encountered if all retries are exhausted.
+///
+/// # Examples
+///
+/// Using retry_with_backoff for a simple API call:
+/// ```rust,no_run
+/// use lifx_rs::retry_with_backoff;
+/// use lifx_rs::RetryConfig;
+/// use std::error::Error;
+///
+/// async fn call_api() -> Result<String, Box<dyn Error>> {
+///     let config = RetryConfig::default();
+///     
+///     let result = retry_with_backoff(config, || async {
+///         // Simulate API call that might fail
+///         let response = "success".to_string();
+///         Ok::<_, String>(response)
+///     }).await;
+///     
+///     Ok(result?)
+/// }
+/// ```
+///
+/// # Backoff Behavior
+///
+/// With default config (100ms initial, 2.0x multiplier):
+/// - Attempt 1: Immediate
+/// - Attempt 2: Wait ~100ms
+/// - Attempt 3: Wait ~200ms
+/// - Attempt 4: Wait ~400ms
+///
+/// The backoff is capped at `max_backoff_ms` to prevent excessive wait times.
+pub async fn retry_with_backoff<T, E, F, Fut>(
+    config: RetryConfig,
+    mut operation: F,
+) -> Result<T, E>
+where
+    F: FnMut() -> Fut,
+    Fut: futures::future::Future<Output = Result<T, E>>,
+    E: std::fmt::Debug + std::fmt::Display,
+{
+    let mut attempt = 0;
+    let mut last_error = None;
+
+    loop {
+        attempt += 1;
+        match operation().await {
+            Ok(result) => return Ok(result),
+            Err(e) => {
+                if attempt > config.max_retries {
+                    last_error = Some(e);
+                    break;
+                }
+                
+                // Calculate exponential backoff
+                let backoff_ms = (
+                    config.initial_backoff_ms as f64
+                    * config.backoff_multiplier.powi((attempt - 1) as i32)
+                ).min(config.max_backoff_ms as f64) as u64;
+                
+                // Add small jitter to prevent thundering herd
+                let jitter = (backoff_ms as f64 * 0.1) as u64;
+                let actual_wait = backoff_ms + (jitter / 2);
+                
+                tokio::time::sleep(Duration::from_millis(actual_wait)).await;
+                last_error = Some(e);
+            }
+        }
+    }
+
+    Err(last_error.expect("last_error should be set after exhausting retries"))
 }
 
 #[cfg(test)]
