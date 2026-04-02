@@ -1,21 +1,33 @@
 # TODO List - lifx-rs
 
-## Immediate Tasks
+## Build & QA Status (April 2, 2026) ✅
+- ✅ Cargo build successful (15.31s)
+- ✅ All 66 unit tests passing
+- ✅ All 61 doc tests passing (2 ignored)
+- ✅ Code formatted with rustfmt
+- ⚠️ Clippy: 210 warnings (mostly style: needless returns, useless conversions)
+- 📄 API improvements documentation created (docs/api_improvements.md)
 
-### Testing
+## Immediate Tasks (Priority Order)
+
+### Code Quality (High Priority)
+- [ ] Fix all clippy warnings (needless returns, derive traits, etc.) - 2-3h effort
+- [ ] Implement custom error type with thiserror crate
+- [ ] Add error source chains and context
+- [ ] Ensure 100% clippy clean build
+
+### Testing (Next Phase)
+- [ ] Create integration tests with mockito/wiremock
 - [ ] Create unit tests for `Light` struct methods
 - [ ] Create unit tests for `State` struct and builder methods
-- [ ] Create unit tests for `Scene` operations
-- [ ] Create unit tests for effect structures (BreatheEffect, PulseEffect, etc.)
-- [ ] Create unit tests for `string_vec_to_params` function
-- [ ] Add integration tests with mock HTTP server
-- [ ] Test async methods separately
+- [ ] Test async methods separately (not just compile tests)
 - [ ] Add error handling tests
+- [ ] Add performance benchmarks (criterion)
 
 ### Code Improvements (from TODO comments)
 - [ ] Support unlimited api_endpoints (currently has TODO comment)
 - [ ] Use multithreaded timeout to detect primary API failures faster
-- [ ] Add retry logic for failed API calls
+- [ ] Add retry logic for failed API calls with exponential backoff
 - [ ] Implement connection pooling for better performance
 
 ### Documentation

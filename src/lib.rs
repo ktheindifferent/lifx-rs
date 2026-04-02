@@ -16,7 +16,7 @@
 //!
 //! ## Description
 //!
-//! A synchronous + asynchronous library for communicating with the official LIFX-API and the unoffical offline API. 
+//! A synchronous + asynchronous library for communicating with the official LIFX-API and the unoffical offline API.
 //!
 //! ## LIFX-API Supported Methods:
 //! * List Lights
@@ -38,7 +38,7 @@
 //! * List Lights
 //! * Set State
 //! * Set States
-//! 
+//!
 //! ## To use offline use the Un-Official API Server:
 //! [lifx-api-server](https://crates.io/crates/lifx-api-server)
 //!
@@ -110,13 +110,13 @@
 //! ```
 //!
 //! ## Tile Animation with Auto-Cleanup Example:
-//! 
+//!
 //! This example shows how to use the new cleanup functions to properly handle tile animations
 //! that have a nonzero duration, avoiding the bug where tiles remain stuck in animation state.
-//! 
+//!
 //! ```rust,no_run
 //! extern crate lifx_rs as lifx;
-//! 
+//!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let key = "your_token".to_string();
 //!     
@@ -191,18 +191,12 @@
 
 pub mod lan;
 
-
-
-use serde::{Serialize, Deserialize};
+use futures::future::{select_ok, BoxFuture};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
-use std::collections::HashMap;
-use futures::future::{select_ok, BoxFuture};
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-
-
-
 
 /// Represents endpoint health status
 #[derive(Debug, Clone)]
@@ -226,14 +220,14 @@ impl EndpointHealth {
             response_time_ms: None,
         }
     }
-    
+
     fn mark_success(&mut self, response_time: Duration) {
         self.last_success = Some(Instant::now());
         self.consecutive_failures = 0;
         self.is_healthy = true;
         self.response_time_ms = Some(response_time.as_millis() as u64);
     }
-    
+
     fn mark_failure(&mut self) {
         self.last_failure = Some(Instant::now());
         self.consecutive_failures += 1;
@@ -242,12 +236,12 @@ impl EndpointHealth {
             self.is_healthy = false;
         }
     }
-    
+
     fn should_retry(&self) -> bool {
         if self.is_healthy {
             return true;
         }
-        
+
         // Exponential backoff: 2^failures seconds, max 300 seconds (5 minutes)
         if let Some(last_failure) = self.last_failure {
             let backoff_seconds = (2_u64.pow(self.consecutive_failures.min(8) as u32)).min(300);
@@ -265,29 +259,39 @@ pub struct FailoverConfig {
     /// Timeout for individual endpoint requests in milliseconds
     #[serde(default = "default_request_timeout")]
     pub request_timeout_ms: u64,
-    
+
     /// Maximum number of concurrent endpoint attempts
     #[serde(default = "default_max_concurrent")]
     pub max_concurrent_attempts: usize,
-    
+
     /// Whether to use round-robin or failover strategy
     #[serde(default = "default_strategy")]
     pub strategy: FailoverStrategy,
-    
+
     /// Enable health checking for endpoints
     #[serde(default = "default_health_check")]
     pub health_check_enabled: bool,
-    
+
     /// Health check interval in seconds
     #[serde(default = "default_health_interval")]
     pub health_check_interval_secs: u64,
 }
 
-fn default_request_timeout() -> u64 { 5000 }
-fn default_max_concurrent() -> usize { 3 }
-fn default_strategy() -> FailoverStrategy { FailoverStrategy::Failover }
-fn default_health_check() -> bool { true }
-fn default_health_interval() -> u64 { 60 }
+fn default_request_timeout() -> u64 {
+    5000
+}
+fn default_max_concurrent() -> usize {
+    3
+}
+fn default_strategy() -> FailoverStrategy {
+    FailoverStrategy::Failover
+}
+fn default_health_check() -> bool {
+    true
+}
+fn default_health_interval() -> u64 {
+    60
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum FailoverStrategy {
@@ -317,13 +321,13 @@ impl Default for FailoverConfig {
 pub struct LifxConfig {
     pub access_token: String,
     pub api_endpoints: Vec<String>,
-    
+
     #[serde(default)]
     pub failover_config: FailoverConfig,
-    
+
     #[serde(skip)]
     endpoint_health: Arc<Mutex<HashMap<String, EndpointHealth>>>,
-    
+
     #[serde(skip)]
     round_robin_counter: Arc<AtomicUsize>,
 }
@@ -342,9 +346,9 @@ impl Default for LifxConfig {
 
 impl PartialEq for LifxConfig {
     fn eq(&self, other: &Self) -> bool {
-        self.access_token == other.access_token &&
-        self.api_endpoints == other.api_endpoints &&
-        self.failover_config.strategy == other.failover_config.strategy
+        self.access_token == other.access_token
+            && self.api_endpoints == other.api_endpoints
+            && self.failover_config.strategy == other.failover_config.strategy
     }
 }
 
@@ -359,41 +363,44 @@ impl LifxConfig {
             round_robin_counter: Arc::new(AtomicUsize::new(0)),
         }
     }
-    
+
     /// Add an endpoint to the configuration
     pub fn add_endpoint(mut self, endpoint: String) -> Self {
         self.api_endpoints.push(endpoint);
         self
     }
-    
+
     /// Set the failover strategy
     pub fn with_strategy(mut self, strategy: FailoverStrategy) -> Self {
         self.failover_config.strategy = strategy;
         self
     }
-    
+
     /// Set the request timeout in milliseconds
     pub fn with_timeout(mut self, timeout_ms: u64) -> Self {
         self.failover_config.request_timeout_ms = timeout_ms;
         self
     }
-    
+
     /// Initialize health tracking for all endpoints
     pub fn init_health_tracking(&self) {
-        let mut health = self.endpoint_health.lock()
+        let mut health = self
+            .endpoint_health
+            .lock()
             .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
         for endpoint in &self.api_endpoints {
-            health.entry(endpoint.clone())
+            health
+                .entry(endpoint.clone())
                 .or_insert_with(|| EndpointHealth::new(endpoint.clone()));
         }
     }
-    
+
     /// Get the next endpoint based on the configured strategy
     pub fn get_next_endpoint(&self) -> Option<String> {
         if self.api_endpoints.is_empty() {
             return None;
         }
-        
+
         match self.failover_config.strategy {
             FailoverStrategy::RoundRobin => {
                 let healthy_endpoints = self.get_healthy_endpoints();
@@ -402,114 +409,136 @@ impl LifxConfig {
                 }
                 let index = self.round_robin_counter.fetch_add(1, Ordering::SeqCst);
                 Some(healthy_endpoints[index % healthy_endpoints.len()].clone())
-            },
+            }
             FailoverStrategy::Failover => {
                 // Return first healthy endpoint
-                self.get_healthy_endpoints().first().cloned()
+                self.get_healthy_endpoints()
+                    .first()
+                    .cloned()
                     .or_else(|| self.api_endpoints.first().cloned())
-            },
+            }
             FailoverStrategy::FastestFirst => {
                 // Sort by response time and return fastest
-                let health = self.endpoint_health.lock()
+                let health = self
+                    .endpoint_health
+                    .lock()
                     .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
-                let mut endpoints_with_time: Vec<(String, Option<u64>)> = self.api_endpoints
+                let mut endpoints_with_time: Vec<(String, Option<u64>)> = self
+                    .api_endpoints
                     .iter()
                     .map(|ep| {
-                        let time = health.get(ep)
-                            .and_then(|h| h.response_time_ms);
+                        let time = health.get(ep).and_then(|h| h.response_time_ms);
                         (ep.clone(), time)
                     })
                     .collect();
-                    
+
                 endpoints_with_time.sort_by_key(|(_ep, time)| time.unwrap_or(u64::MAX));
                 endpoints_with_time.first().map(|(ep, _)| ep.clone())
             }
         }
     }
-    
+
     /// Get all healthy endpoints
     pub fn get_healthy_endpoints(&self) -> Vec<String> {
-        let health = self.endpoint_health.lock()
+        let health = self
+            .endpoint_health
+            .lock()
             .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
         self.api_endpoints
             .iter()
             .filter(|ep| {
-                health.get(*ep)
+                health
+                    .get(*ep)
                     .map(|h| h.is_healthy && h.should_retry())
                     .unwrap_or(true)
             })
             .cloned()
             .collect()
     }
-    
+
     /// Get endpoints ordered by priority (healthy first, then by strategy)
     pub fn get_prioritized_endpoints(&self) -> Vec<String> {
         match self.failover_config.strategy {
             FailoverStrategy::Failover => {
                 // Healthy endpoints first, then unhealthy with exponential backoff
                 let mut healthy = self.get_healthy_endpoints();
-                let health = self.endpoint_health.lock()
+                let health = self
+                    .endpoint_health
+                    .lock()
                     .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
-                let mut unhealthy: Vec<String> = self.api_endpoints
+                let mut unhealthy: Vec<String> = self
+                    .api_endpoints
                     .iter()
                     .filter(|ep| !healthy.contains(ep))
-                    .filter(|ep| {
-                        health.get(*ep)
-                            .map(|h| h.should_retry())
-                            .unwrap_or(true)
-                    })
+                    .filter(|ep| health.get(*ep).map(|h| h.should_retry()).unwrap_or(true))
                     .cloned()
                     .collect();
                 healthy.append(&mut unhealthy);
                 healthy
-            },
-            _ => self.get_healthy_endpoints()
+            }
+            _ => self.get_healthy_endpoints(),
         }
     }
-    
+
     /// Mark an endpoint as successful
     pub fn mark_endpoint_success(&self, endpoint: &str, response_time: Duration) {
-        let mut health = self.endpoint_health.lock()
+        let mut health = self
+            .endpoint_health
+            .lock()
             .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
-        health.entry(endpoint.to_string())
+        health
+            .entry(endpoint.to_string())
             .or_insert_with(|| EndpointHealth::new(endpoint.to_string()))
             .mark_success(response_time);
     }
-    
+
     /// Mark an endpoint as failed
     pub fn mark_endpoint_failure(&self, endpoint: &str) {
-        let mut health = self.endpoint_health.lock()
+        let mut health = self
+            .endpoint_health
+            .lock()
             .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
-        health.entry(endpoint.to_string())
+        health
+            .entry(endpoint.to_string())
             .or_insert_with(|| EndpointHealth::new(endpoint.to_string()))
             .mark_failure();
     }
-    
+
     /// Execute a request with failover across multiple endpoints
-    pub async fn execute_with_failover<F, T>(
-        &self,
-        request_fn: F,
-    ) -> Result<T, reqwest::Error>
+    pub async fn execute_with_failover<F, T>(&self, request_fn: F) -> Result<T, reqwest::Error>
     where
-        F: Fn(String, String) -> BoxFuture<'static, Result<T, reqwest::Error>> + Clone + Send + 'static,
+        F: Fn(String, String) -> BoxFuture<'static, Result<T, reqwest::Error>>
+            + Clone
+            + Send
+            + 'static,
         T: Send + 'static,
     {
         self.init_health_tracking();
         let endpoints = self.get_prioritized_endpoints();
-        
+
         if endpoints.is_empty() {
             // Try to make a request to generate a proper error
             let client = reqwest::Client::new();
-            return client.get("http://no-endpoints-configured")
-                .send().await
-                .and_then(|_| Err(client.get("http://no-endpoints-configured").build().unwrap_err()));
+            return client
+                .get("http://no-endpoints-configured")
+                .send()
+                .await
+                .and_then(|_| {
+                    Err(client
+                        .get("http://no-endpoints-configured")
+                        .build()
+                        .unwrap_err())
+                });
         }
-        
-        let max_concurrent = self.failover_config.max_concurrent_attempts.min(endpoints.len());
+
+        let max_concurrent = self
+            .failover_config
+            .max_concurrent_attempts
+            .min(endpoints.len());
         let timeout = Duration::from_millis(self.failover_config.request_timeout_ms);
-        
+
         let mut last_error = None;
-        
+
         // Try endpoints concurrently (up to max_concurrent at a time)
         for chunk in endpoints.chunks(max_concurrent) {
             let start = Instant::now();
@@ -531,11 +560,18 @@ impl LifxConfig {
                                 {
                                     Ok(client) => {
                                         // Create a request that will timeout
-                                        client.get(&format!("http://{}/timeout", ep))
-                                            .send().await
-                                            .and_then(|_| client.get("http://timeout").build().map_err(Into::into))
+                                        client
+                                            .get(&format!("http://{}/timeout", ep))
+                                            .send()
+                                            .await
+                                            .and_then(|_| {
+                                                client
+                                                    .get("http://timeout")
+                                                    .build()
+                                                    .map_err(Into::into)
+                                            })
                                             .and_then(|_| unreachable!())
-                                    },
+                                    }
                                     Err(e) => {
                                         // Return the client builder error
                                         Err(e)
@@ -546,7 +582,7 @@ impl LifxConfig {
                     }) as BoxFuture<'static, Result<T, reqwest::Error>>
                 })
                 .collect();
-            
+
             match select_ok(futures).await {
                 Ok((result, _remaining)) => {
                     // Mark successful endpoint
@@ -554,7 +590,7 @@ impl LifxConfig {
                         self.mark_endpoint_success(endpoint, start.elapsed());
                     }
                     return Ok(result);
-                },
+                }
                 Err(err) => {
                     // Mark all attempted endpoints as failed
                     for endpoint in chunk {
@@ -564,7 +600,7 @@ impl LifxConfig {
                 }
             }
         }
-        
+
         // Return the last error we encountered
         Err(last_error.unwrap_or_else(|| {
             reqwest::Client::new()
@@ -574,7 +610,6 @@ impl LifxConfig {
         }))
     }
 }
-
 
 pub type Lights = Vec<Light>;
 
@@ -600,9 +635,8 @@ pub struct Light {
     pub errors: Option<Vec<Error>>,
 }
 impl Light {
-
     /// Asynchronously set the breathe animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -613,26 +647,26 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}", lights.clone());
-    /// 
+    ///
     ///     let mut breathe = lifx::BreatheEffect::new();
     ///     breathe.color = Some("red".to_string());
     ///     breathe.from_color = Some("green".to_string());
     ///     breathe.period = Some(10.0);
     ///     breathe.persist = Some(true);
     ///     breathe.power_on = Some(true);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.async_breathe_effect(config.clone(), breathe.clone()).await?;
     ///         println!("{:?}", results);
@@ -641,12 +675,17 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_breathe_effect(&self, config: LifxConfig, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_breathe_effect_by_selector(config, format!("id:{}", self.id), breathe).await;
+    pub async fn async_breathe_effect(
+        &self,
+        config: LifxConfig,
+        breathe: BreatheEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        return Self::async_breathe_effect_by_selector(config, format!("id:{}", self.id), breathe)
+            .await;
     }
 
     /// Asynchronously activate the breathe animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -657,16 +696,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut breathe = lifx::BreatheEffect::new();
     ///     breathe.color = Some("red".to_string());
     ///     breathe.from_color = Some("green".to_string());
@@ -681,33 +720,47 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_breathe_effect_by_selector(config: LifxConfig, selector: String, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/breathe", config.api_endpoints[0], selector);
+    pub async fn async_breathe_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        breathe: BreatheEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/breathe",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::Client::new().post(url)
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&breathe.to_params())
-            .send().await;
-            
-        match request{
+            .send()
+            .await;
+
+        match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/breathe", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/breathe",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::Client::new().post(url)
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&breathe.to_params())
-                        .send().await;
-                        
-                    match request{
+                        .send()
+                        .await;
+
+                    match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -717,13 +770,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
-
-    /// Asynchronously switch a light to clean mode, with a set duration. 
-    /// 
+    /// Asynchronously switch a light to clean mode, with a set duration.
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -734,23 +784,23 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}", lights.clone());
-    /// 
+    ///
     ///     let mut clean = lifx::Clean::new();
     ///     clean.duration = Some(0);
     ///     clean.stop = Some(false);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.async_clean(config.clone(), clean.clone()).await?;
     ///         println!("{:?}", results);
@@ -759,12 +809,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_clean(&self, config: LifxConfig, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
+    pub async fn async_clean(
+        &self,
+        config: LifxConfig,
+        clean: Clean,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::async_clean_by_selector(config, format!("id:{}", self.id), clean).await;
     }
 
-    /// Asynchronously switch a selected LIFX object to clean mode, with a set duration. 
-    /// 
+    /// Asynchronously switch a selected LIFX object to clean mode, with a set duration.
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -775,16 +829,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut clean = lifx::Clean::new();
     ///     clean.duration = Some(0);
     ///     clean.stop = Some(false);
@@ -796,33 +850,41 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_clean_by_selector(config: LifxConfig, selector: String, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
+    pub async fn async_clean_by_selector(
+        config: LifxConfig,
+        selector: String,
+        clean: Clean,
+    ) -> Result<LiFxResults, reqwest::Error> {
         let url = format!("{}/v1/lights/{}/clean", config.api_endpoints[0], selector);
 
-        let request = reqwest::Client::new().post(url)
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&clean.to_params())
-            .send().await;
+            .send()
+            .await;
 
-        match request{
+        match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/{}/clean", config.api_endpoints[1], selector);
 
-                    let request = reqwest::Client::new().post(url)
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&clean.to_params())
-                        .send().await;
-            
-                    match request{
+                        .send()
+                        .await;
+
+                    match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -832,13 +894,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
-
     /// Stops animation(s) for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -849,22 +908,22 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}", lights.clone());
-    /// 
+    ///
     ///     let mut effects_off = lifx::EffectsOff::new();
     ///     effects_off.power_off = Some(true);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.async_effects_off(config.clone(), effects_off.clone()).await?;
     ///         println!("{:?}", results);
@@ -873,12 +932,17 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_effects_off(&self, config: LifxConfig, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_effects_off_by_selector(config, format!("id:{}", self.id), effects_off).await;
+    pub async fn async_effects_off(
+        &self,
+        config: LifxConfig,
+        effects_off: EffectsOff,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        return Self::async_effects_off_by_selector(config, format!("id:{}", self.id), effects_off)
+            .await;
     }
 
     /// Stops animation(s) for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -889,16 +953,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut effects_off = lifx::EffectsOff::new();
     ///     effects_off.power_off = Some(true);
     ///     
@@ -909,51 +973,60 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_effects_off_by_selector(config: LifxConfig, selector: String, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/off", config.api_endpoints[0], selector);
+    pub async fn async_effects_off_by_selector(
+        config: LifxConfig,
+        selector: String,
+        effects_off: EffectsOff,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/off",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::Client::new().post(url)
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&effects_off.to_params())
-            .send().await;
+            .send()
+            .await;
 
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/off", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/off",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::Client::new().post(url)
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&effects_off.to_params())
-                        .send().await;
-            
+                        .send()
+                        .await;
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
                     }
-                
                 } else {
                     return Err(err);
                 }
             }
         }
-    
-
     }
 
-
-
     /// Activate the flame animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -964,19 +1037,19 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}", lights.clone());
-    /// 
+    ///
     ///     let mut flame_effect = lifx::FlameEffect::new();
     ///     flame_effect.period = Some(10);
     ///     flame_effect.duration = Some(0.0);
@@ -990,12 +1063,21 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_flame_effect(&self, config: LifxConfig, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_flame_effect_by_selector(config, format!("id:{}", self.id), flame_effect).await;
+    pub async fn async_flame_effect(
+        &self,
+        config: LifxConfig,
+        flame_effect: FlameEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        return Self::async_flame_effect_by_selector(
+            config,
+            format!("id:{}", self.id),
+            flame_effect,
+        )
+        .await;
     }
 
     /// Activate the flame animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1006,16 +1088,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut flame_effect = lifx::FlameEffect::new();
     ///     flame_effect.period = Some(10);
     ///     flame_effect.duration = Some(0.0);
@@ -1028,33 +1110,47 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_flame_effect_by_selector(config: LifxConfig, selector: String, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/flame", config.api_endpoints[0], selector);
+    pub async fn async_flame_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        flame_effect: FlameEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/flame",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::Client::new().post(url)
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&flame_effect.to_params())
-            .send().await;
+            .send()
+            .await;
 
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/flame", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/flame",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::Client::new().post(url)
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&flame_effect.to_params())
-                        .send().await;
-            
+                        .send()
+                        .await;
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -1064,14 +1160,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
-
-
     /// Asynchronously gets ALL lights belonging to the authenticated account
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1080,16 +1172,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::async_list_all(config).await?;
     ///
     ///     Ok(())
@@ -1100,7 +1192,7 @@ impl Light {
     }
 
     /// Asynchronously gets lights belonging to the authenticated account. Filtering the lights using selectors. Properties such as id, label, group and location can be used in selectors.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1110,61 +1202,77 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::async_list_by_selector(config, format!("all")).await?;
     ///
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_list_by_selector(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
+    pub async fn async_list_by_selector(
+        config: LifxConfig,
+        selector: String,
+    ) -> Result<Lights, reqwest::Error> {
         // Use legacy implementation if only 1-2 endpoints for backward compatibility
         if config.api_endpoints.len() <= 2 && !config.failover_config.health_check_enabled {
             return Self::async_list_by_selector_legacy(config, selector).await;
         }
-        
+
         // Use new failover system for unlimited endpoints
         let selector_clone = selector.clone();
-        config.execute_with_failover(move |endpoint, token| {
-            let sel = selector_clone.clone();
-            Box::pin(async move {
-                let url = format!("{}/v1/lights/{}", endpoint, sel);
-                let req = reqwest::Client::new()
-                    .get(url)
-                    .header("Authorization", format!("Bearer {}", token))
-                    .send()
-                    .await?;
-                req.json::<Lights>().await
+        config
+            .execute_with_failover(move |endpoint, token| {
+                let sel = selector_clone.clone();
+                Box::pin(async move {
+                    let url = format!("{}/v1/lights/{}", endpoint, sel);
+                    let req = reqwest::Client::new()
+                        .get(url)
+                        .header("Authorization", format!("Bearer {}", token))
+                        .send()
+                        .await?;
+                    req.json::<Lights>().await
+                })
             })
-        }).await
+            .await
     }
-    
+
     // Legacy implementation for backward compatibility
-    async fn async_list_by_selector_legacy(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
+    async fn async_list_by_selector_legacy(
+        config: LifxConfig,
+        selector: String,
+    ) -> Result<Lights, reqwest::Error> {
         let url = format!("{}/v1/lights/{}", config.api_endpoints[0], selector);
-        let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
+        let request = reqwest::Client::new()
+            .get(url)
+            .header("Authorization", format!("Bearer {}", config.access_token))
+            .send()
+            .await;
         match request {
             Ok(req) => {
                 let json = req.json::<Lights>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/{}", config.api_endpoints[1], selector);
-                    let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
+                    let request = reqwest::Client::new()
+                        .get(url)
+                        .header("Authorization", format!("Bearer {}", config.access_token))
+                        .send()
+                        .await;
                     match request {
                         Ok(req) => {
                             let json = req.json::<Lights>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -1177,7 +1285,7 @@ impl Light {
     }
 
     /// Asynchronously activate the morph animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -1188,19 +1296,19 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}", lights.clone());
-    /// 
+    ///
     ///     let mut morph_effect = lifx::MorphEffect::new();
     ///     morph_effect.period = Some(10);
     ///     morph_effect.duration = Some(0.0);
@@ -1220,12 +1328,21 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_morph_effect(&self, config: LifxConfig, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_morph_effect_by_selector(config, format!("id:{}", self.id), morph_effect).await;
+    pub async fn async_morph_effect(
+        &self,
+        config: LifxConfig,
+        morph_effect: MorphEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        return Self::async_morph_effect_by_selector(
+            config,
+            format!("id:{}", self.id),
+            morph_effect,
+        )
+        .await;
     }
 
     /// Asynchronously activate the morph animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1236,24 +1353,24 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut morph_effect = lifx::MorphEffect::new();
     ///     morph_effect.period = Some(10);
     ///     morph_effect.duration = Some(0.0);
-    /// 
+    ///
     ///     let mut palette: Vec<String> = Vec::new();
     ///     palette.push(format!("red"));
     ///     palette.push(format!("green"));
-    /// 
+    ///
     ///     morph_effect.palette = Some(palette);
     ///     morph_effect.power_on = Some(true);
     ///     
@@ -1264,29 +1381,43 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_morph_effect_by_selector(config: LifxConfig, selector: String, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/morph", config.api_endpoints[0], selector);
-        let request = reqwest::Client::new().post(url)
+    pub async fn async_morph_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        morph_effect: MorphEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/morph",
+            config.api_endpoints[0], selector
+        );
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&morph_effect.to_params())
-            .send().await;
+            .send()
+            .await;
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/morph", config.api_endpoints[1], selector);
-                    let request = reqwest::Client::new().post(url)
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/morph",
+                        config.api_endpoints[1], selector
+                    );
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&morph_effect.to_params())
-                        .send().await;
+                        .send()
+                        .await;
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -1296,12 +1427,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     /// Asynchronously activate the move animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -1312,25 +1441,25 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::async_list_all(config.clone()).await?;
     ///     println!("{:?}",lights.clone());
-    /// 
+    ///
     ///     let mut move_effect = lifx::MoveEffect::new();
     ///     move_effect.direction = Some("forward".to_string()); // or backward
     ///     move_effect.period = Some(10);
     ///     move_effect.cycles = Some(0.9);
     ///     move_effect.power_on = Some(true);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.async_move_effect(config.clone(), move_effect.clone()).await?;
     ///         println!("{:?}",results);
@@ -1339,12 +1468,17 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_move_effect(&self, config: LifxConfig, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_move_effect_by_selector(config, format!("id:{}", self.id), move_effect).await;
+    pub async fn async_move_effect(
+        &self,
+        config: LifxConfig,
+        move_effect: MoveEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        return Self::async_move_effect_by_selector(config, format!("id:{}", self.id), move_effect)
+            .await;
     }
 
     /// Asynchronously activate the move animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1355,16 +1489,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut move_effect = lifx::MoveEffect::new();
     ///     move_effect.direction = Some("forward".to_string()); // or backward
     ///     move_effect.period = Some(10);
@@ -1378,33 +1512,47 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_move_effect_by_selector(config: LifxConfig, selector: String, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/move", config.api_endpoints[0], selector);
+    pub async fn async_move_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        move_effect: MoveEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/move",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::Client::new().post(url)
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&move_effect.to_params())
-            .send().await;
+            .send()
+            .await;
 
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/move", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/move",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::Client::new().post(url)
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&move_effect.to_params())
-                        .send().await;
-            
+                        .send()
+                        .await;
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -1414,12 +1562,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     /// Asynchronously activate the pulse animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -1430,26 +1576,26 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::async_list_all(config.clone()).await?;
     ///     println!("{:?}",lights.clone());
-    /// 
+    ///
     ///     let mut pulse = lifx::PulseEffect::new();
     ///     pulse.color = Some("red".to_string());
     ///     pulse.from_color = Some("green".to_string());
     ///     pulse.period = Some(10.0);
     ///     pulse.persist = Some(true);
     ///     pulse.power_on = Some(true);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.async_pulse_effect(config.clone(), pulse.clone()).await?;
     ///         println!("{:?}",results);
@@ -1458,12 +1604,21 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_pulse_effect(&self, config: LifxConfig, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
-        return Self::async_pulse_effect_by_selector(config, format!("id:{}", self.id), pulse_effect).await;
+    pub async fn async_pulse_effect(
+        &self,
+        config: LifxConfig,
+        pulse_effect: PulseEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        return Self::async_pulse_effect_by_selector(
+            config,
+            format!("id:{}", self.id),
+            pulse_effect,
+        )
+        .await;
     }
 
     /// Asynchronously activate the pulse animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1474,16 +1629,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut pulse = lifx::PulseEffect::new();
     ///     pulse.color = Some("red".to_string());
     ///     pulse.from_color = Some("green".to_string());
@@ -1498,52 +1653,60 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_pulse_effect_by_selector(config: LifxConfig, selector: String, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/pulse", config.api_endpoints[0], selector);
+    pub async fn async_pulse_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        pulse_effect: PulseEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/pulse",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::Client::new().post(url)
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&pulse_effect.to_params())
-            .send().await;
+            .send()
+            .await;
 
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/pulse", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/pulse",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::Client::new().post(url)
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&pulse_effect.to_params())
-                        .send().await;
-            
+                        .send()
+                        .await;
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
                     }
-                
-            
                 } else {
                     return Err(err);
                 }
             }
         }
-    
-
     }
 
-
-
     /// Asynchronously sets the state for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -1554,23 +1717,23 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::async_list_all(config.clone()).await?;
     ///     println!("{:?}",lights.clone());
-    /// 
+    ///
     ///     let mut state = lifx::State::new();
     ///     state.power = Some("on".to_string());
     ///     state.brightness = Some(1.0);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.async_set_state(config.clone(), state.clone()).await?;
     ///         println!("{:?}",results);
@@ -1579,12 +1742,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_set_state(&self, config: LifxConfig, state: State) ->  Result<LiFxResults, reqwest::Error>{
+    pub async fn async_set_state(
+        &self,
+        config: LifxConfig,
+        state: State,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::async_set_state_by_selector(config, format!("id:{}", self.id), state).await;
     }
 
     /// Asynchronously sets the state for the selected LIFX object
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1595,16 +1762,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut off_state = lifx::State::new();
     ///     off_state.power = Some("off".to_string());
     ///     
@@ -1615,35 +1782,43 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_set_state_by_selector(config: LifxConfig, selector: String, state: State) ->  Result<LiFxResults, reqwest::Error>{
+    pub async fn async_set_state_by_selector(
+        config: LifxConfig,
+        selector: String,
+        state: State,
+    ) -> Result<LiFxResults, reqwest::Error> {
         let url = format!("{}/v1/lights/{}/state", config.api_endpoints[0], selector);
 
-        let request = reqwest::Client::new().put(url)
+        let request = reqwest::Client::new()
+            .put(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&state.to_params())
-            .send().await;
+            .send()
+            .await;
 
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/{}/state", config.api_endpoints[0], selector);
 
-                    let request = reqwest::Client::new().put(url)
+                    let request = reqwest::Client::new()
+                        .put(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&state.to_params())
-                        .send().await;
-            
+                        .send()
+                        .await;
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
-                          return Err(err2);  
+                            return Err(err2);
                         }
                     }
                 } else {
@@ -1651,12 +1826,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     /// Asynchronously sets the state for the selected LIFX object(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1666,16 +1839,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut set_states = lifx::States::new();
     ///     let mut states: Vec<lifx::State> = Vec::new();
     ///     let mut defaults = lifx::State::new();
@@ -1699,51 +1872,51 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_set_states(config: LifxConfig, states: States) ->  Result<LiFxResults, reqwest::Error>{
+    pub async fn async_set_states(
+        config: LifxConfig,
+        states: States,
+    ) -> Result<LiFxResults, reqwest::Error> {
         let url = format!("{}/v1/lights/state", config.api_endpoints[0]);
 
-        let request = reqwest::blocking::Client::new().put(url)
+        let request = reqwest::blocking::Client::new()
+            .put(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .json(&states)
             .send();
 
-        match request{
+        match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(e) => {
                 if config.api_endpoints.len() > 1 {
-
                     let url = format!("{}/v1/lights/state", config.api_endpoints[1]);
 
-                    let request = reqwest::blocking::Client::new().put(url)
+                    let request = reqwest::blocking::Client::new()
+                        .put(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .json(&states)
                         .send();
-            
-                    match request{
+
+                    match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(e2) => {
                             return Err(e2);
                         }
                     }
-
-
                 } else {
                     return Err(e);
                 }
             }
         }
-    
-
     }
 
     /// Asynchronously set parameters other than power and duration change the state of the lights by the amount specified.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1754,16 +1927,16 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut delta = lifx::StateDelta::new();
     ///     delta.duration = Some(0.0);
     ///     delta.power = Some("on".to_string());
@@ -1775,50 +1948,58 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_state_delta_by_selector(config: LifxConfig, selector: String, delta: StateDelta) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/state/delta", config.api_endpoints[0], selector);
+    pub async fn async_state_delta_by_selector(
+        config: LifxConfig,
+        selector: String,
+        delta: StateDelta,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/state/delta",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::Client::new().post(url)
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&delta.to_params())
-            .send().await;
+            .send()
+            .await;
 
-        match request{
+        match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/state/delta", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/state/delta",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::Client::new().post(url)
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&delta.to_params())
-                        .send().await;
-            
-                    match request{
+                        .send()
+                        .await;
+
+                    match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
-                        Err(err2) => {
-                            return Err(err2)
                         }
+                        Err(err2) => return Err(err2),
                     }
                 } else {
                     return Err(err);
                 }
             }
         }
-    
-
     }
 
-
-
-    /// Turn off light if on, or turn them on if it is off. 
-    /// 
+    /// Turn off light if on, or turn them on if it is off.
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -1829,22 +2010,22 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::async_list_all(config.clone()).await?;
     ///     println!("{:?}",lights.clone());
-    /// 
+    ///
     ///     let mut toggle = lifx::Toggle::new();
     ///     toggle.duration = Some(0);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.async_toggle(config.clone(), toggle.clone()).await?;
     ///         println!("{:?}",results);
@@ -1853,12 +2034,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_toggle(&self, config: LifxConfig, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
+    pub async fn async_toggle(
+        &self,
+        config: LifxConfig,
+        toggle: Toggle,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::async_toggle_by_selector(config, format!("id:{}", self.id), toggle).await;
     }
 
-    /// Turn off lights if any of them are on, or turn them on if they are all off. 
-    /// 
+    /// Turn off lights if any of them are on, or turn them on if they are all off.
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1869,16 +2054,16 @@ impl Light {
     ///
     /// ```
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut toggle = lifx::Toggle::new();
     ///     toggle.duration = Some(0);
     ///     
@@ -1888,33 +2073,41 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_toggle_by_selector(config: LifxConfig, selector: String, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
+    pub async fn async_toggle_by_selector(
+        config: LifxConfig,
+        selector: String,
+        toggle: Toggle,
+    ) -> Result<LiFxResults, reqwest::Error> {
         let url = format!("{}/v1/lights/{}/toggle", config.api_endpoints[0], selector);
 
-        let request = reqwest::Client::new().post(url)
+        let request = reqwest::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&toggle.to_params())
-            .send().await;
+            .send()
+            .await;
 
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/{}/toggle", config.api_endpoints[1], selector);
 
-                    let request = reqwest::Client::new().post(url)
+                    let request = reqwest::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&toggle.to_params())
-                        .send().await;
-            
+                        .send()
+                        .await;
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -1924,8 +2117,6 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     // =======================================
@@ -1937,7 +2128,7 @@ impl Light {
     // =======================================
 
     /// Set the breathe animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -1948,25 +2139,25 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
-    /// 
+    ///
     ///     let mut breathe = lifx::BreatheEffect::new();
     ///     breathe.color = Some("red".to_string());
     ///     breathe.from_color = Some("green".to_string());
     ///     breathe.period = Some(10.0);
     ///     breathe.persist = Some(true);
     ///     breathe.power_on = Some(true);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.breathe_effect(config.clone(), breathe.clone());
     ///         println!("{:?}",results);
@@ -1975,12 +2166,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn breathe_effect(&self, config: LifxConfig, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn breathe_effect(
+        &self,
+        config: LifxConfig,
+        breathe: BreatheEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::breathe_by_selector_effect(config, format!("id:{}", self.id), breathe);
     }
 
     /// Activate the breathe animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -1991,15 +2186,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut breathe = lifx::BreatheEffect::new();
     ///     breathe.color = Some("red".to_string());
     ///     breathe.from_color = Some("green".to_string());
@@ -2013,10 +2208,18 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn breathe_by_selector_effect(config: LifxConfig, selector: String, breathe: BreatheEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/breathe", config.api_endpoints[0], selector);
+    pub fn breathe_by_selector_effect(
+        config: LifxConfig,
+        selector: String,
+        breathe: BreatheEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/breathe",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::blocking::Client::new().post(url)
+        let request = reqwest::blocking::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&breathe.to_params())
             .send();
@@ -2025,21 +2228,25 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(e) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/breathe", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/breathe",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::blocking::Client::new().post(url)
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&breathe.to_params())
                         .send();
-            
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(e2) => {
                             return Err(e2);
                         }
@@ -2049,12 +2256,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
-    /// This endpoint lets you switch a light to clean mode, with a set duration. 
-    /// 
+    /// This endpoint lets you switch a light to clean mode, with a set duration.
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -2065,22 +2270,22 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
-    /// 
+    ///
     ///     let mut clean = lifx::Clean::new();
     ///     clean.duration = Some(0);
     ///     clean.stop = Some(false);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.clean(config.clone(), clean.clone());
     ///         println!("{:?}",results);
@@ -2089,12 +2294,12 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn clean(&self, config: LifxConfig, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn clean(&self, config: LifxConfig, clean: Clean) -> Result<LiFxResults, reqwest::Error> {
         return Self::clean_by_selector(config, format!("id:{}", self.id), clean);
     }
 
-    /// This endpoint lets you switch a selected LIFX object to clean mode, with a set duration. 
-    /// 
+    /// This endpoint lets you switch a selected LIFX object to clean mode, with a set duration.
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2105,15 +2310,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut clean = lifx::Clean::new();
     ///     clean.duration = Some(0);
     ///     clean.stop = Some(false);
@@ -2124,10 +2329,15 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn clean_by_selector(config: LifxConfig, selector: String, clean: Clean) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn clean_by_selector(
+        config: LifxConfig,
+        selector: String,
+        clean: Clean,
+    ) -> Result<LiFxResults, reqwest::Error> {
         let url = format!("{}/v1/lights/{}/clean", config.api_endpoints[0], selector);
 
-        let request = reqwest::blocking::Client::new().post(url)
+        let request = reqwest::blocking::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&clean.to_params())
             .send();
@@ -2136,21 +2346,22 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/{}/clean", config.api_endpoints[1], selector);
 
-                    let request = reqwest::blocking::Client::new().post(url)
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&clean.to_params())
                         .send();
-            
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2160,12 +2371,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     /// Stops animation(s) for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -2176,15 +2385,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
     ///     
@@ -2199,12 +2408,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn effects_off(&self, config: LifxConfig, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn effects_off(
+        &self,
+        config: LifxConfig,
+        effects_off: EffectsOff,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::effects_off_by_selector(config, format!("id:{}", self.id), effects_off);
     }
 
     /// Stops animation(s) for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2215,15 +2428,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut effects_off = lifx::EffectsOff::new();
     ///     effects_off.power_off = Some(true);
     ///     
@@ -2233,10 +2446,18 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn effects_off_by_selector(config: LifxConfig, selector: String, effects_off: EffectsOff) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/off", config.api_endpoints[0], selector);
+    pub fn effects_off_by_selector(
+        config: LifxConfig,
+        selector: String,
+        effects_off: EffectsOff,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/off",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::blocking::Client::new().post(url)
+        let request = reqwest::blocking::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&effects_off.to_params())
             .send();
@@ -2245,21 +2466,25 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/off", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/off",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::blocking::Client::new().post(url)
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&effects_off.to_params())
                         .send();
-            
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2269,12 +2494,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     /// Activate the flame animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -2285,15 +2508,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
     ///     
@@ -2310,12 +2533,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn flame_effect(&self, config: LifxConfig, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn flame_effect(
+        &self,
+        config: LifxConfig,
+        flame_effect: FlameEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::flame_effect_by_selector(config, format!("id:{}", self.id), flame_effect);
     }
 
     /// Activate the flame animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2326,15 +2553,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut flame_effect = lifx::FlameEffect::new();
     ///     flame_effect.period = Some(10);
     ///     flame_effect.duration = Some(0.0);
@@ -2346,10 +2573,18 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn flame_effect_by_selector(config: LifxConfig, selector: String, flame_effect: FlameEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/flame", config.api_endpoints[0], selector);
+    pub fn flame_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        flame_effect: FlameEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/flame",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::blocking::Client::new().post(url)
+        let request = reqwest::blocking::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&flame_effect.to_params())
             .send();
@@ -2358,21 +2593,25 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/flame", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/flame",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::blocking::Client::new().post(url)
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&flame_effect.to_params())
                         .send();
-            
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2382,12 +2621,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     /// Gets ALL lights belonging to the authenticated account
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2396,15 +2633,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config)?;
     ///
     ///     Ok(())
@@ -2415,7 +2652,7 @@ impl Light {
     }
 
     /// Gets lights belonging to the authenticated account. Filtering the lights using selectors. Properties such as id, label, group and location can be used in selectors.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2425,37 +2662,46 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_by_selector(config, format!("all"))?;
     ///
     ///     Ok(())
     /// }
     ///  ```
-    pub fn list_by_selector(config: LifxConfig, selector: String) -> Result<Lights, reqwest::Error> {
+    pub fn list_by_selector(
+        config: LifxConfig,
+        selector: String,
+    ) -> Result<Lights, reqwest::Error> {
         let url = format!("{}/v1/lights/{}", config.api_endpoints[0], selector);
-        let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
+        let request = reqwest::blocking::Client::new()
+            .get(url)
+            .header("Authorization", format!("Bearer {}", config.access_token))
+            .send();
         match request {
             Ok(req) => {
                 let json = req.json::<Lights>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/{}", config.api_endpoints[1], selector);
-                    let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
+                    let request = reqwest::blocking::Client::new()
+                        .get(url)
+                        .header("Authorization", format!("Bearer {}", config.access_token))
+                        .send();
                     match request {
                         Ok(req) => {
                             let json = req.json::<Lights>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2465,11 +2711,10 @@ impl Light {
                 }
             }
         }
-
     }
 
     /// Activate the morph animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -2480,26 +2725,26 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
     ///     
     ///             let mut morph_effect = lifx::MorphEffect::new();
     ///             morph_effect.period = Some(10);
     ///             morph_effect.duration = Some(0.0);
-    /// 
+    ///
     ///             let mut palette: Vec<String> = Vec::new();
     ///             palette.push(format!("red"));
     ///             palette.push(format!("green"));
-    /// 
+    ///
     ///             morph_effect.palette = Some(palette);
     ///             morph_effect.power_on = Some(true);
     ///         
@@ -2511,12 +2756,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn morph_effect(&self, config: LifxConfig, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn morph_effect(
+        &self,
+        config: LifxConfig,
+        morph_effect: MorphEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::morph_effect_by_selector(config, format!("id:{}", self.id), morph_effect);
     }
 
     /// Activate the morph animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2527,23 +2776,23 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut morph_effect = lifx::MorphEffect::new();
     ///     morph_effect.period = Some(10);
     ///     morph_effect.duration = Some(0.0);
-    /// 
+    ///
     ///     let mut palette: Vec<String> = Vec::new();
     ///     palette.push(format!("red"));
     ///     palette.push(format!("green"));
-    /// 
+    ///
     ///     morph_effect.palette = Some(palette);
     ///     morph_effect.power_on = Some(true);
     ///     
@@ -2553,23 +2802,41 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn morph_effect_by_selector(config: LifxConfig, selector: String, morph_effect: MorphEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/morph", config.api_endpoints[0], selector);
-        let request = reqwest::blocking::Client::new().post(url).header("Authorization", format!("Bearer {}", config.access_token)).form(&morph_effect.to_params()).send();
-        match request{
+    pub fn morph_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        morph_effect: MorphEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/morph",
+            config.api_endpoints[0], selector
+        );
+        let request = reqwest::blocking::Client::new()
+            .post(url)
+            .header("Authorization", format!("Bearer {}", config.access_token))
+            .form(&morph_effect.to_params())
+            .send();
+        match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/morph", config.api_endpoints[1], selector);
-                    let request = reqwest::blocking::Client::new().post(url).header("Authorization", format!("Bearer {}", config.access_token)).form(&morph_effect.to_params()).send();
-                    match request{
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/morph",
+                        config.api_endpoints[1], selector
+                    );
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
+                        .header("Authorization", format!("Bearer {}", config.access_token))
+                        .form(&morph_effect.to_params())
+                        .send();
+                    match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2579,13 +2846,10 @@ impl Light {
                 }
             }
         }
-
-
-
     }
 
     /// Activate the move animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -2596,15 +2860,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
     ///     
@@ -2622,12 +2886,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn move_effect(&self, config: LifxConfig, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn move_effect(
+        &self,
+        config: LifxConfig,
+        move_effect: MoveEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::move_effect_by_selector(config, format!("id:{}", self.id), move_effect);
     }
 
     /// Activate the move animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2638,15 +2906,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut move_effect = lifx::MoveEffect::new();
     ///     move_effect.direction = Some("forward".to_string()); // or backward
     ///     move_effect.period = Some(10);
@@ -2659,23 +2927,41 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn move_effect_by_selector(config: LifxConfig, selector: String, move_effect: MoveEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/move", config.api_endpoints[0], selector);
-        let request = reqwest::blocking::Client::new().post(url).header("Authorization", format!("Bearer {}", config.access_token)).form(&move_effect.to_params()).send();
-        match request{
+    pub fn move_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        move_effect: MoveEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/move",
+            config.api_endpoints[0], selector
+        );
+        let request = reqwest::blocking::Client::new()
+            .post(url)
+            .header("Authorization", format!("Bearer {}", config.access_token))
+            .form(&move_effect.to_params())
+            .send();
+        match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/move", config.api_endpoints[1], selector);
-                    let request = reqwest::blocking::Client::new().post(url).header("Authorization", format!("Bearer {}", config.access_token)).form(&move_effect.to_params()).send();
-                    match request{
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/move",
+                        config.api_endpoints[1], selector
+                    );
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
+                        .header("Authorization", format!("Bearer {}", config.access_token))
+                        .form(&move_effect.to_params())
+                        .send();
+                    match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2685,11 +2971,10 @@ impl Light {
                 }
             }
         }
-
     }
 
     /// Activate the pulse animation for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -2700,15 +2985,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
     ///     
@@ -2727,12 +3012,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn pulse_effect(&self, config: LifxConfig, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn pulse_effect(
+        &self,
+        config: LifxConfig,
+        pulse_effect: PulseEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::pulse_effect_by_selector(config, format!("id:{}", self.id), pulse_effect);
     }
 
     /// Activate the pulse animation for the selected light(s)
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2743,15 +3032,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut pulse = lifx::PulseEffect::new();
     ///     pulse.color = Some("red".to_string());
     ///     pulse.from_color = Some("green".to_string());
@@ -2765,9 +3054,17 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn pulse_effect_by_selector(config: LifxConfig, selector: String, pulse_effect: PulseEffect) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/effects/pulse", config.api_endpoints[0], selector);
-        let request = reqwest::blocking::Client::new().post(url)
+    pub fn pulse_effect_by_selector(
+        config: LifxConfig,
+        selector: String,
+        pulse_effect: PulseEffect,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/effects/pulse",
+            config.api_endpoints[0], selector
+        );
+        let request = reqwest::blocking::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&pulse_effect.to_params())
             .send();
@@ -2775,11 +3072,15 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/effects/pulse", config.api_endpoints[1], selector);
-                    let request = reqwest::blocking::Client::new().post(url)
+                    let url = format!(
+                        "{}/v1/lights/{}/effects/pulse",
+                        config.api_endpoints[1], selector
+                    );
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&pulse_effect.to_params())
                         .send();
@@ -2787,7 +3088,7 @@ impl Light {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2797,11 +3098,10 @@ impl Light {
                 }
             }
         }
-
     }
 
     /// Sets the state for the current light
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -2812,15 +3112,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
     ///     
@@ -2836,12 +3136,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn set_state(&self, config: LifxConfig, state: State) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn set_state(
+        &self,
+        config: LifxConfig,
+        state: State,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::set_state_by_selector(config, format!("id:{}", self.id), state);
     }
 
     /// Sets the state for the selected LIFX object
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2852,15 +3156,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut off_state = lifx::State::new();
     ///     off_state.power = Some("off".to_string());
     ///     
@@ -2870,10 +3174,15 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn set_state_by_selector(config: LifxConfig, selector: String, state: State) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn set_state_by_selector(
+        config: LifxConfig,
+        selector: String,
+        state: State,
+    ) -> Result<LiFxResults, reqwest::Error> {
         let url = format!("{}/v1/lights/{}/state", config.api_endpoints[0], selector);
 
-        let request = reqwest::blocking::Client::new().put(url)
+        let request = reqwest::blocking::Client::new()
+            .put(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&state.to_params())
             .send();
@@ -2881,12 +3190,13 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/{}/state", config.api_endpoints[1], selector);
 
-                    let request = reqwest::blocking::Client::new().put(url)
+                    let request = reqwest::blocking::Client::new()
+                        .put(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&state.to_params())
                         .send();
@@ -2894,7 +3204,7 @@ impl Light {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2904,12 +3214,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     /// Sets the state for the selected LIFX object
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -2919,15 +3227,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut set_states = lifx::States::new();
     ///     let mut states: Vec<lifx::State> = Vec::new();
     ///     let mut defaults = lifx::State::new();
@@ -2950,10 +3258,11 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn set_states(config: LifxConfig, states: States) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn set_states(config: LifxConfig, states: States) -> Result<LiFxResults, reqwest::Error> {
         let url = format!("{}/v1/lights/state", config.api_endpoints[0]);
 
-        let request = reqwest::blocking::Client::new().put(url)
+        let request = reqwest::blocking::Client::new()
+            .put(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .json(&states)
             .send();
@@ -2962,21 +3271,22 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/state", config.api_endpoints[1]);
 
-                    let request = reqwest::blocking::Client::new().put(url)
+                    let request = reqwest::blocking::Client::new()
+                        .put(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .json(&states)
                         .send();
-            
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -2986,12 +3296,10 @@ impl Light {
                 }
             }
         }
-    
-
     }
 
     /// Set parameters other than power and duration change the state of the lights by the amount specified.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -3002,15 +3310,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut delta = lifx::StateDelta::new();
     ///     delta.duration = Some(0.0);
     ///     delta.power = Some("on".to_string());
@@ -3021,10 +3329,18 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn state_delta_by_selector(config: LifxConfig, selector: String, delta: StateDelta) ->  Result<LiFxResults, reqwest::Error>{
-        let url = format!("{}/v1/lights/{}/state/delta", config.api_endpoints[0], selector);
+    pub fn state_delta_by_selector(
+        config: LifxConfig,
+        selector: String,
+        delta: StateDelta,
+    ) -> Result<LiFxResults, reqwest::Error> {
+        let url = format!(
+            "{}/v1/lights/{}/state/delta",
+            config.api_endpoints[0], selector
+        );
 
-        let request = reqwest::blocking::Client::new().post(url)
+        let request = reqwest::blocking::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&delta.to_params())
             .send();
@@ -3033,21 +3349,25 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
-                    let url = format!("{}/v1/lights/{}/state/delta", config.api_endpoints[1], selector);
+                    let url = format!(
+                        "{}/v1/lights/{}/state/delta",
+                        config.api_endpoints[1], selector
+                    );
 
-                    let request = reqwest::blocking::Client::new().post(url)
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&delta.to_params())
                         .send();
-            
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -3057,12 +3377,10 @@ impl Light {
                 }
             }
         }
-
     }
 
-
-    /// Turn off light if on, or turn them on if it is off. 
-    /// 
+    /// Turn off light if on, or turn them on if it is off.
+    ///
     /// # Arguments
     ///
     /// * `self` - A Light object.
@@ -3073,21 +3391,21 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let lights = lifx::Light::list_all(config.clone())?;
     ///     println!("{:?}",lights.clone());
-    /// 
+    ///
     ///     let mut toggle = lifx::Toggle::new();
     ///     toggle.duration = Some(0);
-    /// 
+    ///
     ///     for light in lights {
     ///         let results = light.toggle(config.clone(), toggle.clone());
     ///         println!("{:?}",results);
@@ -3096,12 +3414,16 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn toggle(&self, config: LifxConfig, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn toggle(
+        &self,
+        config: LifxConfig,
+        toggle: Toggle,
+    ) -> Result<LiFxResults, reqwest::Error> {
         return Self::toggle_by_selector(config, format!("id:{}", self.id), toggle);
     }
 
-    /// Turn off lights if any of them are on, or turn them on if they are all off. 
-    /// 
+    /// Turn off lights if any of them are on, or turn them on if they are all off.
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -3112,15 +3434,15 @@ impl Light {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut toggle = lifx::Toggle::new();
     ///     toggle.duration = Some(0);
     ///     
@@ -3130,10 +3452,15 @@ impl Light {
     ///     Ok(())
     /// }
     ///  ```
-    pub fn toggle_by_selector(config: LifxConfig, selector: String, toggle: Toggle) ->  Result<LiFxResults, reqwest::Error>{
+    pub fn toggle_by_selector(
+        config: LifxConfig,
+        selector: String,
+        toggle: Toggle,
+    ) -> Result<LiFxResults, reqwest::Error> {
         let url = format!("{}/v1/lights/{}/toggle", config.api_endpoints[0], selector);
 
-        let request = reqwest::blocking::Client::new().post(url)
+        let request = reqwest::blocking::Client::new()
+            .post(url)
             .header("Authorization", format!("Bearer {}", config.access_token))
             .form(&toggle.to_params())
             .send();
@@ -3142,33 +3469,31 @@ impl Light {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/lights/{}/toggle", config.api_endpoints[1], selector);
 
-                    let request = reqwest::blocking::Client::new().post(url)
+                    let request = reqwest::blocking::Client::new()
+                        .post(url)
                         .header("Authorization", format!("Bearer {}", config.access_token))
                         .form(&toggle.to_params())
                         .send();
-            
+
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
                     }
-                
                 } else {
                     return Err(err);
                 }
             }
         }
-    
-
     }
 }
 
@@ -3191,7 +3516,7 @@ pub struct Scene {
 }
 impl Scene {
     /// Asynchronously gets ALL scenes belonging to the authenticated account
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -3200,16 +3525,16 @@ impl Scene {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let scenes = lifx::Scene::async_list(config).await?;
     ///
     ///     Ok(())
@@ -3217,36 +3542,42 @@ impl Scene {
     ///  ```
     pub async fn async_list(config: LifxConfig) -> Result<Scenes, reqwest::Error> {
         let url = format!("{}/v1/scenes", config.api_endpoints[0]);
-        let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
+        let request = reqwest::Client::new()
+            .get(url)
+            .header("Authorization", format!("Bearer {}", config.access_token))
+            .send()
+            .await;
         match request {
             Ok(req) => {
                 let json = req.json::<Scenes>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/scenes", config.api_endpoints[1]);
-                    let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
+                    let request = reqwest::Client::new()
+                        .get(url)
+                        .header("Authorization", format!("Bearer {}", config.access_token))
+                        .send()
+                        .await;
                     match request {
                         Ok(req) => {
                             let json = req.json::<Scenes>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
                     }
-            
                 } else {
                     return Err(err);
                 }
             }
         }
-
     }
 
     /// Gets ALL scenes belonging to the authenticated account
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -3255,15 +3586,15 @@ impl Scene {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let scenes = lifx::Scene::list(config)?;
     ///
     ///     Ok(())
@@ -3271,23 +3602,29 @@ impl Scene {
     ///  ```
     pub fn list(config: LifxConfig) -> Result<Scenes, reqwest::Error> {
         let url = format!("{}/v1/scenes", config.api_endpoints[0]);
-        let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
+        let request = reqwest::blocking::Client::new()
+            .get(url)
+            .header("Authorization", format!("Bearer {}", config.access_token))
+            .send();
 
-        match request{
+        match request {
             Ok(req) => {
                 let json = req.json::<Scenes>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/scenes", config.api_endpoints[1]);
-                    let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
-            
-                    match request{
+                    let request = reqwest::blocking::Client::new()
+                        .get(url)
+                        .header("Authorization", format!("Bearer {}", config.access_token))
+                        .send();
+
+                    match request {
                         Ok(req) => {
                             let json = req.json::<Scenes>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -3297,8 +3634,6 @@ impl Scene {
                 }
             }
         }
-
-
     }
 }
 
@@ -3315,7 +3650,7 @@ pub struct Color {
 }
 impl Color {
     /// Asynchronously validates a color
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -3324,38 +3659,49 @@ impl Color {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let scenes = lifx::Color::async_validate(config, format!("red")).await?;
     ///
     ///     Ok(())
     /// }
     ///  ```
-    pub async fn async_validate(config: LifxConfig, color: String) -> Result<Color, reqwest::Error> {
+    pub async fn async_validate(
+        config: LifxConfig,
+        color: String,
+    ) -> Result<Color, reqwest::Error> {
         let url = format!("{}/v1/color?string={}", config.api_endpoints[0], color);
-        let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
+        let request = reqwest::Client::new()
+            .get(url)
+            .header("Authorization", format!("Bearer {}", config.access_token))
+            .send()
+            .await;
         match request {
             Ok(req) => {
                 let json = req.json::<Color>().await?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/color?string={}", config.api_endpoints[1], color);
-                    let request = reqwest::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send().await;
+                    let request = reqwest::Client::new()
+                        .get(url)
+                        .header("Authorization", format!("Bearer {}", config.access_token))
+                        .send()
+                        .await;
                     match request {
                         Ok(req) => {
                             let json = req.json::<Color>().await?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -3365,11 +3711,10 @@ impl Color {
                 }
             }
         }
-
     }
 
     /// Validates a color
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `access_token` - A personal acces token for authentication with LIFX.
@@ -3378,15 +3723,15 @@ impl Color {
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let scenes = lifx::Color::validate(config, format!("red"))?;
     ///
     ///     Ok(())
@@ -3394,21 +3739,27 @@ impl Color {
     ///  ```
     pub fn validate(config: LifxConfig, color: String) -> Result<Color, reqwest::Error> {
         let url = format!("{}/v1/color?string={}", config.api_endpoints[0], color);
-        let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
+        let request = reqwest::blocking::Client::new()
+            .get(url)
+            .header("Authorization", format!("Bearer {}", config.access_token))
+            .send();
         match request {
             Ok(req) => {
                 let json = req.json::<Color>()?;
                 return Ok(json);
-            },
+            }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
                     let url = format!("{}/v1/color?string={}", config.api_endpoints[1], color);
-                    let request = reqwest::blocking::Client::new().get(url).header("Authorization", format!("Bearer {}", config.access_token)).send();
+                    let request = reqwest::blocking::Client::new()
+                        .get(url)
+                        .header("Authorization", format!("Bearer {}", config.access_token))
+                        .send();
                     match request {
                         Ok(req) => {
                             let json = req.json::<Color>()?;
                             return Ok(json);
-                        },
+                        }
                         Err(err2) => {
                             return Err(err2);
                         }
@@ -3418,8 +3769,6 @@ impl Color {
                 }
             }
         }
-
-
     }
 }
 
@@ -3430,31 +3779,29 @@ pub struct Clean {
     /// Turn the device on / off
     pub stop: Option<bool>,
     /// Duration in seconds (leaving blank or 0 sets the default duration for the device)
-    pub duration: Option<i64>
+    pub duration: Option<i64>,
 }
 impl Clean {
     pub fn new() -> Self {
-        return Clean{
+        return Clean {
             stop: None,
-            duration: None
+            duration: None,
         };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.stop{
+        match &self.stop {
             Some(stop) => params.push(("stop".to_string(), stop.to_string())),
             None => {}
         }
-        match &self.duration{
+        match &self.duration {
             Some(duration) => params.push(("duration".to_string(), duration.to_string())),
             None => {}
         }
-       
+
         return params;
     }
-
-
 }
 
 /// Used to descripe the state of an LIFX Light Source
@@ -3472,27 +3819,26 @@ pub struct State {
     /// The maximum brightness of the infrared channel from 0.0 to 1.0.
     pub infrared: Option<f64>,
     /// The selector to limit which light to use for set_states()
-    pub selector:  Option<String>,
+    pub selector: Option<String>,
     /// Execute the query fast, without initial state checks and wait for no results.
-    pub fast: Option<bool>
+    pub fast: Option<bool>,
 }
 impl State {
-
     /// Returns a new State object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut state = lifx::State::new();
     ///     state.power = Some("off".to_string());
     ///
@@ -3500,75 +3846,73 @@ impl State {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return State{
+        return State {
             power: None,
             color: None,
             brightness: None,
             duration: None,
             infrared: None,
             selector: None,
-            fast: None
+            fast: None,
         };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.power{
+        match &self.power {
             Some(power) => params.push(("power".to_string(), power.to_string())),
             None => {}
         }
-        match &self.color{
+        match &self.color {
             Some(color) => params.push(("color".to_string(), color.to_string())),
             None => {}
         }
-        match &self.brightness{
+        match &self.brightness {
             Some(brightness) => params.push(("brightness".to_string(), brightness.to_string())),
             None => {}
         }
-        match &self.duration{
+        match &self.duration {
             Some(duration) => params.push(("duration".to_string(), duration.to_string())),
             None => {}
         }
-        match &self.infrared{
+        match &self.infrared {
             Some(infrared) => params.push(("infrared".to_string(), infrared.to_string())),
             None => {}
         }
-        match &self.selector{
+        match &self.selector {
             Some(selector) => params.push(("selector".to_string(), selector.to_string())),
             None => {}
         }
-        match &self.fast{
+        match &self.fast {
             Some(fast) => params.push(("fast".to_string(), fast.to_string())),
             None => {}
         }
         return params;
     }
-
-
 }
 
 /// Used to set the params when posting a Toggle event
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Toggle {
-    pub duration: Option<i64>
+    pub duration: Option<i64>,
 }
 impl Toggle {
     /// Returns a new Toggle object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut toggle = lifx::Toggle::new();
     ///     toggle.duration = Some(0);
     ///
@@ -3576,23 +3920,18 @@ impl Toggle {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return Toggle{
-            duration: None
-        };
+        return Toggle { duration: None };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.duration{
+        match &self.duration {
             Some(duration) => params.push(("duration".to_string(), duration.to_string())),
             None => {}
         }
         return params;
     }
-
-
 }
-
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -3603,29 +3942,29 @@ pub struct States {
 }
 impl States {
     /// Returns a new States object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut states = lifx::States::new();
     ///
     ///     Ok(())
     /// }
     ///  ```
     pub fn new() -> Self {
-        return States{
+        return States {
             states: None,
-            defaults: None
+            defaults: None,
         };
     }
 }
@@ -3653,20 +3992,20 @@ pub struct StateDelta {
 }
 impl StateDelta {
     /// Returns a new StateDelta object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut delta = lifx::StateDelta::new();
     ///     delta.duration = Some(0.0);
     ///
@@ -3674,7 +4013,7 @@ impl StateDelta {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return StateDelta{
+        return StateDelta {
             power: None,
             duration: None,
             infrared: None,
@@ -3682,55 +4021,54 @@ impl StateDelta {
             saturation: None,
             brightness: None,
             kelvin: None,
-            fast: None
+            fast: None,
         };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.power{
+        match &self.power {
             Some(power) => params.push(("power".to_string(), power.to_string())),
             None => {}
         }
 
-        match &self.duration{
+        match &self.duration {
             Some(duration) => params.push(("duration".to_string(), duration.to_string())),
             None => {}
         }
 
-        match &self.infrared{
+        match &self.infrared {
             Some(infrared) => params.push(("infrared".to_string(), infrared.to_string())),
             None => {}
         }
 
-        match &self.hue{
+        match &self.hue {
             Some(hue) => params.push(("hue".to_string(), hue.to_string())),
             None => {}
         }
 
-        match &self.saturation{
+        match &self.saturation {
             Some(saturation) => params.push(("saturation".to_string(), saturation.to_string())),
             None => {}
         }
 
-        match &self.brightness{
+        match &self.brightness {
             Some(brightness) => params.push(("brightness".to_string(), brightness.to_string())),
             None => {}
         }
 
-        match &self.kelvin{
+        match &self.kelvin {
             Some(kelvin) => params.push(("kelvin".to_string(), kelvin.to_string())),
             None => {}
         }
 
-        match &self.fast{
+        match &self.fast {
             Some(fast) => params.push(("fast".to_string(), fast.to_string())),
             None => {}
         }
 
         return params;
     }
-
 }
 
 /// Used to set the params when posting a BreatheEffect event
@@ -3754,20 +4092,20 @@ pub struct BreatheEffect {
 }
 impl BreatheEffect {
     /// Returns a new BreatheEffect object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut breathe = lifx::BreatheEffect::new();
     ///     breathe.color = Some("red".to_string());
     ///     breathe.from_color = Some("green".to_string());
@@ -3779,57 +4117,56 @@ impl BreatheEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return BreatheEffect{
+        return BreatheEffect {
             color: None,
             from_color: None,
             period: None,
             cycles: None,
             persist: None,
             power_on: None,
-            peak: None
+            peak: None,
         };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.color{
+        match &self.color {
             Some(color) => params.push(("color".to_string(), color.to_string())),
             None => {}
         }
 
-        match &self.from_color{
+        match &self.from_color {
             Some(from_color) => params.push(("from_color".to_string(), from_color.to_string())),
             None => {}
         }
 
-        match &self.period{
+        match &self.period {
             Some(period) => params.push(("period".to_string(), period.to_string())),
             None => {}
         }
 
-        match &self.cycles{
+        match &self.cycles {
             Some(cycles) => params.push(("cycles".to_string(), cycles.to_string())),
             None => {}
         }
 
-        match &self.persist{
+        match &self.persist {
             Some(persist) => params.push(("persist".to_string(), persist.to_string())),
             None => {}
         }
 
-        match &self.power_on{
+        match &self.power_on {
             Some(power_on) => params.push(("power_on".to_string(), power_on.to_string())),
             None => {}
         }
 
-        match &self.peak{
+        match &self.peak {
             Some(peak) => params.push(("peak".to_string(), peak.to_string())),
             None => {}
         }
 
         return params;
     }
-
 }
 
 /// Used to set the params when posting a MoveEffect event
@@ -3849,20 +4186,20 @@ pub struct MoveEffect {
 }
 impl MoveEffect {
     /// Returns a new MoveEffect object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut move_effect = lifx::MoveEffect::new();
     ///     move_effect.direction = Some("forward".to_string()); // or backward
     ///     move_effect.period = Some(10);
@@ -3873,45 +4210,44 @@ impl MoveEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return MoveEffect{
+        return MoveEffect {
             direction: None,
             period: None,
             cycles: None,
             power_on: None,
-            fast: None
+            fast: None,
         };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.direction{
+        match &self.direction {
             Some(direction) => params.push(("direction".to_string(), direction.to_string())),
             None => {}
         }
 
-        match &self.period{
+        match &self.period {
             Some(period) => params.push(("period".to_string(), period.to_string())),
             None => {}
         }
 
-        match &self.cycles{
+        match &self.cycles {
             Some(cycles) => params.push(("cycles".to_string(), cycles.to_string())),
             None => {}
         }
 
-        match &self.power_on{
+        match &self.power_on {
             Some(power_on) => params.push(("power_on".to_string(), power_on.to_string())),
             None => {}
         }
 
-        match &self.fast{
+        match &self.fast {
             Some(fast) => params.push(("fast".to_string(), fast.to_string())),
             None => {}
         }
 
         return params;
     }
-
 }
 
 /// Used to set the params when posting a MorphEffect event
@@ -3921,7 +4257,7 @@ pub struct MorphEffect {
     /// The time in seconds for one cycle of the effect.
     pub period: Option<i64>,
     /// How long the animation lasts for in seconds. Not specifying a duration makes the animation never stop. Specifying 0 makes the animation stop.
-    /// 
+    ///
     /// **Note:** For proper cleanup when using nonzero duration with tiles, consider using the
     /// `morph_effect_with_cleanup()` or `async_morph_effect_with_cleanup()` helper functions
     /// which automatically stop the animation after the duration expires.
@@ -3935,28 +4271,28 @@ pub struct MorphEffect {
 }
 impl MorphEffect {
     /// Returns a new MorphEffect object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut morph_effect = lifx::MorphEffect::new();
     ///     morph_effect.period = Some(10);
     ///     morph_effect.duration = Some(0.0);
-    /// 
+    ///
     ///     let mut palette: Vec<String> = Vec::new();
     ///     palette.push("red".to_string());
     ///     palette.push("green".to_string());
-    /// 
+    ///
     ///     morph_effect.palette = Some(palette);
     ///     morph_effect.power_on = Some(true);
     ///
@@ -3964,48 +4300,48 @@ impl MorphEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return MorphEffect{
+        return MorphEffect {
             period: None,
             duration: None,
             palette: None,
             power_on: None,
-            fast: None
+            fast: None,
         };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.period{
+        match &self.period {
             Some(period) => params.push(("period".to_string(), period.to_string())),
             None => {}
         }
 
-        match &self.duration{
+        match &self.duration {
             Some(duration) => params.push(("duration".to_string(), duration.to_string())),
             None => {}
         }
 
-        match &self.palette{
-            Some(palette) => params.push(("palette".to_string(), string_vec_to_params(palette.to_vec()))),
+        match &self.palette {
+            Some(palette) => params.push((
+                "palette".to_string(),
+                string_vec_to_params(palette.to_vec()),
+            )),
             None => {}
         }
 
-        match &self.power_on{
+        match &self.power_on {
             Some(power_on) => params.push(("power_on".to_string(), power_on.to_string())),
             None => {}
         }
 
-        match &self.fast{
+        match &self.fast {
             Some(fast) => params.push(("fast".to_string(), fast.to_string())),
             None => {}
         }
 
         return params;
     }
-
 }
-
-
 
 /// Used to set the params when posting a PulseEffect event
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -4026,20 +4362,20 @@ pub struct PulseEffect {
 }
 impl PulseEffect {
     /// Returns a new PulseEffect object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut pulse = lifx::PulseEffect::new();
     ///     pulse.color = Some("red".to_string());
     ///     pulse.from_color = Some("green".to_string());
@@ -4051,51 +4387,50 @@ impl PulseEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return PulseEffect{
+        return PulseEffect {
             color: None,
             from_color: None,
             period: None,
             cycles: None,
             persist: None,
-            power_on: None
+            power_on: None,
         };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.color{
+        match &self.color {
             Some(color) => params.push(("color".to_string(), color.to_string())),
             None => {}
         }
 
-        match &self.from_color{
+        match &self.from_color {
             Some(from_color) => params.push(("from_color".to_string(), from_color.to_string())),
             None => {}
         }
 
-        match &self.period{
+        match &self.period {
             Some(period) => params.push(("period".to_string(), period.to_string())),
             None => {}
         }
 
-        match &self.cycles{
+        match &self.cycles {
             Some(cycles) => params.push(("cycles".to_string(), cycles.to_string())),
             None => {}
         }
 
-        match &self.persist{
+        match &self.persist {
             Some(persist) => params.push(("persist".to_string(), persist.to_string())),
             None => {}
         }
 
-        match &self.power_on{
+        match &self.power_on {
             Some(power_on) => params.push(("power_on".to_string(), power_on.to_string())),
             None => {}
         }
 
         return params;
     }
-
 }
 
 /// Used to set the params when posting a EffectsOff event
@@ -4107,20 +4442,20 @@ pub struct EffectsOff {
 }
 impl EffectsOff {
     /// Returns a new EffectsOff object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut ef = lifx::EffectsOff::new();
     ///     ef.power_off = Some(true);
     ///
@@ -4128,24 +4463,19 @@ impl EffectsOff {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return EffectsOff{
-            power_off: None,
-        };
+        return EffectsOff { power_off: None };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.power_off{
+        match &self.power_off {
             Some(power_off) => params.push(("power_off".to_string(), power_off.to_string())),
             None => {}
         }
 
         return params;
     }
-
 }
-
-
 
 /// Used to set the params when posting a FlameEffect event
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -4154,7 +4484,7 @@ pub struct FlameEffect {
     /// The time in seconds for one cycle of the effect.
     pub period: Option<i64>,
     /// How long the animation lasts for in seconds. Not specifying a duration makes the animation never stop. Specifying 0 makes the animation stop.
-    /// 
+    ///
     /// **Note:** For proper cleanup when using nonzero duration with tiles, consider using the
     /// `flame_effect_with_cleanup()` or `async_flame_effect_with_cleanup()` helper functions
     /// which automatically stop the animation after the duration expires.
@@ -4166,20 +4496,20 @@ pub struct FlameEffect {
 }
 impl FlameEffect {
     /// Returns a new FlameEffect object
-    /// 
+    ///
     /// # Examples
     ///
     /// ```rust,no_run
     /// extern crate lifx_rs as lifx;
-    /// 
+    ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// 
+    ///
     ///     let key = "xxx".to_string();
     ///
     ///     let config = lifx::LifxConfig::new(key)
     ///         .add_endpoint("https://api.lifx.com".to_string())
     ///         .add_endpoint("http://localhost:8089".to_string());
-    /// 
+    ///
     ///     let mut flame_effect = lifx::FlameEffect::new();
     ///     flame_effect.period = Some(10);
     ///     flame_effect.duration = Some(0.0);
@@ -4189,58 +4519,57 @@ impl FlameEffect {
     /// }
     ///  ```
     pub fn new() -> Self {
-        return FlameEffect{
+        return FlameEffect {
             period: None,
             duration: None,
             power_on: None,
-            fast: None
+            fast: None,
         };
     }
 
     fn to_params(&self) -> Vec<(String, String)> {
         let mut params: Vec<(String, String)> = vec![];
-        match &self.period{
+        match &self.period {
             Some(period) => params.push(("period".to_string(), period.to_string())),
             None => {}
         }
 
-        match &self.duration{
+        match &self.duration {
             Some(duration) => params.push(("duration".to_string(), duration.to_string())),
             None => {}
         }
 
-        match &self.power_on{
+        match &self.power_on {
             Some(power_on) => params.push(("power_on".to_string(), power_on.to_string())),
             None => {}
         }
 
-        match &self.fast{
+        match &self.fast {
             Some(fast) => params.push(("fast".to_string(), fast.to_string())),
             None => {}
         }
 
         return params;
     }
-
 }
 
 /// Performs a flame effect on tiles with automatic cleanup after duration.
 /// This is a workaround for the tile animation bug where tiles remain in animation state after completion.
-/// 
+///
 /// # Arguments
 /// * `config` - LIFX configuration with access token and endpoints
 /// * `selector` - LIFX selector (e.g., "all", "id:xxx", "group_id:xxx")
 /// * `flame_effect` - FlameEffect configuration with duration
-/// 
+///
 /// # Returns
 /// Returns a tuple of (effect_result, cleanup_result) where cleanup_result is None if duration is 0 or None
-/// 
+///
 /// # Example
 /// ```ignore
 /// let mut flame_effect = lifx::FlameEffect::new();
 /// flame_effect.period = Some(5.0);
 /// flame_effect.duration = Some(10.0); // Will auto-cleanup after 10 seconds
-/// 
+///
 /// let (effect_result, cleanup_result) = lifx::flame_effect_with_cleanup(
 ///     config.clone(),
 ///     "all".to_string(),
@@ -4253,41 +4582,46 @@ pub fn flame_effect_with_cleanup(
     flame_effect: FlameEffect,
 ) -> Result<(LiFxResults, Option<LiFxResults>), reqwest::Error> {
     // Start the flame effect
-    let effect_result = Light::flame_effect_by_selector(config.clone(), selector.clone(), flame_effect.clone())?;
-    
+    let effect_result =
+        Light::flame_effect_by_selector(config.clone(), selector.clone(), flame_effect.clone())?;
+
     // If duration is specified and non-zero, schedule cleanup
     let cleanup_result = match flame_effect.duration {
         Some(duration) if duration > 0.0 => {
             // Sleep for the duration
             std::thread::sleep(std::time::Duration::from_secs_f64(duration));
-            
+
             // Turn off the effect
             let effects_off = EffectsOff::new();
-            Some(Light::effects_off_by_selector(config, selector, effects_off)?)
+            Some(Light::effects_off_by_selector(
+                config,
+                selector,
+                effects_off,
+            )?)
         }
         _ => None,
     };
-    
+
     Ok((effect_result, cleanup_result))
 }
 
 /// Performs a morph effect on tiles with automatic cleanup after duration.
 /// This is a workaround for the tile animation bug where tiles remain in animation state after completion.
-/// 
+///
 /// # Arguments
 /// * `config` - LIFX configuration with access token and endpoints
 /// * `selector` - LIFX selector (e.g., "all", "id:xxx", "group_id:xxx")
 /// * `morph_effect` - MorphEffect configuration with duration
-/// 
+///
 /// # Returns
 /// Returns a tuple of (effect_result, cleanup_result) where cleanup_result is None if duration is 0 or None
-/// 
+///
 /// # Example
 /// ```ignore
 /// let mut morph_effect = lifx::MorphEffect::new();
 /// morph_effect.period = Some(5.0);
 /// morph_effect.duration = Some(10.0); // Will auto-cleanup after 10 seconds
-/// 
+///
 /// let (effect_result, cleanup_result) = lifx::morph_effect_with_cleanup(
 ///     config.clone(),
 ///     "all".to_string(),
@@ -4300,26 +4634,30 @@ pub fn morph_effect_with_cleanup(
     morph_effect: MorphEffect,
 ) -> Result<(LiFxResults, Option<LiFxResults>), reqwest::Error> {
     // Start the morph effect
-    let effect_result = Light::morph_effect_by_selector(config.clone(), selector.clone(), morph_effect.clone())?;
-    
+    let effect_result =
+        Light::morph_effect_by_selector(config.clone(), selector.clone(), morph_effect.clone())?;
+
     // If duration is specified and non-zero, schedule cleanup
     let cleanup_result = match morph_effect.duration {
         Some(duration) if duration > 0.0 => {
             // Sleep for the duration
             std::thread::sleep(std::time::Duration::from_secs_f64(duration));
-            
+
             // Turn off the effect
             let effects_off = EffectsOff::new();
-            Some(Light::effects_off_by_selector(config, selector, effects_off)?)
+            Some(Light::effects_off_by_selector(
+                config,
+                selector,
+                effects_off,
+            )?)
         }
         _ => None,
     };
-    
+
     Ok((effect_result, cleanup_result))
 }
 
 pub fn string_vec_to_params(input: Vec<String>) -> String {
-
     if input.is_empty() {
         return "[]".to_string();
     }
@@ -4330,7 +4668,7 @@ pub fn string_vec_to_params(input: Vec<String>) -> String {
         if count == 0 {
             params = format!("[\"{}\"", iput);
         } else {
-            params = format!("{}, \"{}\"",params, iput);
+            params = format!("{}, \"{}\"", params, iput);
         }
         count += 1;
     }
@@ -4401,9 +4739,6 @@ pub struct Account {
     pub uuid: String,
 }
 
-
-
-
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[doc(hidden)]
@@ -4412,13 +4747,12 @@ pub struct Error {
     pub message: Vec<String>,
 }
 
-
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[doc(hidden)]
 pub struct LiFxResults {
     pub results: Option<Vec<LiFxResult>>,
-    pub error: Option<String>
+    pub error: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -4460,7 +4794,7 @@ mod tests {
         state.power = Some("on".to_string());
         state.brightness = Some(0.5);
         state.duration = Some(1.0);
-        
+
         assert_eq!(state.power, Some("on".to_string()));
         assert_eq!(state.brightness, Some(0.5));
         assert_eq!(state.duration, Some(1.0));
@@ -4485,7 +4819,7 @@ mod tests {
         delta.duration = Some(2.0);
         delta.brightness = Some(0.1);
         delta.kelvin = Some(3500);
-        
+
         assert_eq!(delta.power, Some("on".to_string()));
         assert_eq!(delta.duration, Some(2.0));
         assert_eq!(delta.brightness, Some(0.1));
@@ -4513,7 +4847,7 @@ mod tests {
         effect.persist = Some(true);
         effect.power_on = Some(true);
         effect.peak = Some(0.8);
-        
+
         assert_eq!(effect.color, Some("red".to_string()));
         assert_eq!(effect.period, Some(2.0));
         assert_eq!(effect.cycles, Some(5.0));
@@ -4545,12 +4879,19 @@ mod tests {
     #[test]
     fn test_morph_effect_with_palette() {
         let mut effect = MorphEffect::new();
-        effect.palette = Some(vec!["red".to_string(), "blue".to_string(), "green".to_string()]);
+        effect.palette = Some(vec![
+            "red".to_string(),
+            "blue".to_string(),
+            "green".to_string(),
+        ]);
         effect.period = Some(3);
         effect.duration = Some(10.0);
         effect.power_on = Some(true);
-        
-        assert!(effect.palette.is_some(), "Palette should be Some after being set");
+
+        assert!(
+            effect.palette.is_some(),
+            "Palette should be Some after being set"
+        );
         let palette = effect.palette.as_ref().unwrap();
         assert_eq!(palette.len(), 3, "Palette should contain exactly 3 colors");
         assert_eq!(palette[0], "red", "First color should be red");
@@ -4610,22 +4951,41 @@ mod tests {
         let mut state1 = State::new();
         state1.power = Some("on".to_string());
         state1.brightness = Some(1.0);
-        
+
         let mut state2 = State::new();
         state2.power = Some("off".to_string());
-        
+
         states.states = Some(vec![state1, state2]);
-        
-        assert!(states.states.is_some(), "States should be Some after being set");
+
+        assert!(
+            states.states.is_some(),
+            "States should be Some after being set"
+        );
         let states_vec = states.states.as_ref().unwrap();
-        assert_eq!(states_vec.len(), 2, "States vector should contain exactly 2 states");
-        assert_eq!(states_vec[0].power, Some("on".to_string()), "First state power should be 'on'");
-        assert_eq!(states_vec[1].power, Some("off".to_string()), "Second state power should be 'off'");
+        assert_eq!(
+            states_vec.len(),
+            2,
+            "States vector should contain exactly 2 states"
+        );
+        assert_eq!(
+            states_vec[0].power,
+            Some("on".to_string()),
+            "First state power should be 'on'"
+        );
+        assert_eq!(
+            states_vec[1].power,
+            Some("off".to_string()),
+            "Second state power should be 'off'"
+        );
     }
 
     #[test]
     fn test_string_vec_to_params() {
-        let params = vec!["param1".to_string(), "param2".to_string(), "param3".to_string()];
+        let params = vec![
+            "param1".to_string(),
+            "param2".to_string(),
+            "param3".to_string(),
+        ];
         let result = string_vec_to_params(params);
         assert_eq!(result, "[\"param1\", \"param2\", \"param3\"]");
     }
@@ -4665,7 +5025,9 @@ mod tests {
         let scene = Scene {
             uuid: "test-uuid".to_string(),
             name: "Test Scene".to_string(),
-            account: Account { uuid: "account-uuid".to_string() },
+            account: Account {
+                uuid: "account-uuid".to_string(),
+            },
             states: vec![],
             created_at: 1234567890,
             updated_at: 1234567891,
@@ -4749,13 +5111,23 @@ mod tests {
             ]),
             error: None,
         };
-        
+
         assert!(results.results.is_some(), "Results should be Some");
         let results_vec = results.results.unwrap();
-        assert_eq!(results_vec.len(), 2, "Results vector should contain exactly 2 results");
+        assert_eq!(
+            results_vec.len(),
+            2,
+            "Results vector should contain exactly 2 results"
+        );
         assert_eq!(results_vec[0].id, "id1", "First result ID should be 'id1'");
-        assert_eq!(results_vec[1].label, "Light 2", "Second result label should be 'Light 2'");
-        assert!(results.error.is_none(), "Error field should be None when results are present");
+        assert_eq!(
+            results_vec[1].label, "Light 2",
+            "Second result label should be 'Light 2'"
+        );
+        assert!(
+            results.error.is_none(),
+            "Error field should be None when results are present"
+        );
     }
 
     #[test]
@@ -4764,17 +5136,27 @@ mod tests {
             results: None,
             error: Some("API Error".to_string()),
         };
-        
-        assert!(results.results.is_none(), "Results should be None when error is present");
-        assert!(results.error.is_some(), "Error should be Some when API error occurs");
-        assert_eq!(results.error.unwrap(), "API Error", "Error message should be 'API Error'");
+
+        assert!(
+            results.results.is_none(),
+            "Results should be None when error is present"
+        );
+        assert!(
+            results.error.is_some(),
+            "Error should be Some when API error occurs"
+        );
+        assert_eq!(
+            results.error.unwrap(),
+            "API Error",
+            "Error message should be 'API Error'"
+        );
     }
 
     #[test]
     fn test_morph_effect_with_none_palette() {
         let effect = MorphEffect::new();
         assert!(effect.palette.is_none());
-        
+
         // This should not panic - palette is None
         if let Some(palette) = effect.palette.as_ref() {
             panic!("Expected None but got Some with {} items", palette.len());
@@ -4785,10 +5167,13 @@ mod tests {
     fn test_states_with_none_states() {
         let states = States::new();
         assert!(states.states.is_none());
-        
+
         // This should not panic - states is None
         if let Some(states_vec) = states.states.as_ref() {
-            panic!("Expected None but got Some with {} states", states_vec.len());
+            panic!(
+                "Expected None but got Some with {} states",
+                states_vec.len()
+            );
         }
     }
 
@@ -4798,13 +5183,16 @@ mod tests {
             results: None,
             error: None,
         };
-        
+
         assert!(results.results.is_none());
         assert!(results.error.is_none());
-        
+
         // This should not panic - both fields are None
         if let Some(results_vec) = results.results {
-            panic!("Expected None but got Some with {} results", results_vec.len());
+            panic!(
+                "Expected None but got Some with {} results",
+                results_vec.len()
+            );
         }
         if let Some(error) = results.error {
             panic!("Expected None but got Some error: {}", error);
@@ -4816,7 +5204,10 @@ mod tests {
     fn test_expect_message_for_palette() {
         let effect = MorphEffect::new();
         // This will panic with our custom message
-        let _palette = effect.palette.as_ref().expect("Palette should be Some after being set");
+        let _palette = effect
+            .palette
+            .as_ref()
+            .expect("Palette should be Some after being set");
     }
 
     #[test]
@@ -4824,7 +5215,10 @@ mod tests {
     fn test_expect_message_for_states() {
         let states = States::new();
         // This will panic with our custom message
-        let _states_vec = states.states.as_ref().expect("States should be Some after being set");
+        let _states_vec = states
+            .states
+            .as_ref()
+            .expect("States should be Some after being set");
     }
 
     #[test]
@@ -4835,7 +5229,9 @@ mod tests {
             error: None,
         };
         // This will panic with our custom message
-        let _results_vec = results.results.expect("Results should be Some after being set");
+        let _results_vec = results
+            .results
+            .expect("Results should be Some after being set");
     }
 
     #[test]
@@ -4844,7 +5240,7 @@ mod tests {
         let mut effect = FlameEffect::new();
         effect.period = Some(5);
         // No duration set, so no cleanup should happen
-        
+
         assert_eq!(effect.duration, None);
     }
 
@@ -4854,7 +5250,7 @@ mod tests {
         let mut effect = FlameEffect::new();
         effect.period = Some(5);
         effect.duration = Some(0.0);
-        
+
         // Zero duration means stop immediately, no cleanup needed
         assert_eq!(effect.duration, Some(0.0));
     }
@@ -4865,7 +5261,7 @@ mod tests {
         let mut effect = FlameEffect::new();
         effect.period = Some(5);
         effect.duration = Some(10.0);
-        
+
         // Positive duration should trigger cleanup after the duration
         assert_eq!(effect.duration, Some(10.0));
     }
@@ -4876,7 +5272,7 @@ mod tests {
         let mut effect = MorphEffect::new();
         effect.period = Some(5);
         // No duration set, so no cleanup should happen
-        
+
         assert_eq!(effect.duration, None);
     }
 
@@ -4886,7 +5282,7 @@ mod tests {
         let mut effect = MorphEffect::new();
         effect.period = Some(5);
         effect.duration = Some(0.0);
-        
+
         // Zero duration means stop immediately, no cleanup needed
         assert_eq!(effect.duration, Some(0.0));
     }
@@ -4901,7 +5297,7 @@ mod tests {
         palette.push("red".to_string());
         palette.push("blue".to_string());
         effect.palette = Some(palette);
-        
+
         // Positive duration should trigger cleanup after the duration
         assert_eq!(effect.duration, Some(10.0));
         assert!(effect.palette.is_some());
@@ -4912,11 +5308,11 @@ mod tests {
         // Test EffectsOff struct creation
         let mut effects_off = EffectsOff::new();
         assert_eq!(effects_off.power_off, None);
-        
+
         effects_off.power_off = Some(true);
         assert_eq!(effects_off.power_off, Some(true));
     }
-    
+
     // New tests for failover functionality
     #[test]
     fn test_lifx_config_builder() {
@@ -4926,13 +5322,16 @@ mod tests {
             .add_endpoint("https://api3.lifx.com".to_string())
             .with_strategy(FailoverStrategy::RoundRobin)
             .with_timeout(3000);
-            
+
         assert_eq!(config.access_token, "test_token");
         assert_eq!(config.api_endpoints.len(), 3);
-        assert_eq!(config.failover_config.strategy, FailoverStrategy::RoundRobin);
+        assert_eq!(
+            config.failover_config.strategy,
+            FailoverStrategy::RoundRobin
+        );
         assert_eq!(config.failover_config.request_timeout_ms, 3000);
     }
-    
+
     #[test]
     fn test_endpoint_health_tracking() {
         let health = EndpointHealth::new("https://api.lifx.com".to_string());
@@ -4940,59 +5339,59 @@ mod tests {
         assert_eq!(health.consecutive_failures, 0);
         assert!(health.should_retry());
     }
-    
+
     #[test]
     fn test_endpoint_health_failure_tracking() {
         let mut health = EndpointHealth::new("https://api.lifx.com".to_string());
-        
+
         // First failure
         health.mark_failure();
         assert_eq!(health.consecutive_failures, 1);
         assert!(health.is_healthy);
-        
+
         // Second failure
         health.mark_failure();
         assert_eq!(health.consecutive_failures, 2);
         assert!(health.is_healthy);
-        
+
         // Third failure - should mark as unhealthy
         health.mark_failure();
         assert_eq!(health.consecutive_failures, 3);
         assert!(!health.is_healthy);
     }
-    
+
     #[test]
     fn test_endpoint_health_success_resets_failures() {
         let mut health = EndpointHealth::new("https://api.lifx.com".to_string());
-        
+
         health.mark_failure();
         health.mark_failure();
         assert_eq!(health.consecutive_failures, 2);
-        
+
         health.mark_success(Duration::from_millis(100));
         assert_eq!(health.consecutive_failures, 0);
         assert!(health.is_healthy);
         assert_eq!(health.response_time_ms, Some(100));
     }
-    
+
     #[test]
     fn test_exponential_backoff() {
         let mut health = EndpointHealth::new("https://api.lifx.com".to_string());
-        
+
         // Mark as failed multiple times
         for _ in 0..5 {
             health.mark_failure();
         }
-        
+
         assert!(!health.is_healthy);
-        
+
         // Immediately after failure, should not retry
         assert!(!health.should_retry());
-        
+
         // After backoff period, should allow retry
         // Note: This test is simplified - in real tests we'd mock time
     }
-    
+
     #[test]
     fn test_failover_config_defaults() {
         let config = FailoverConfig::default();
@@ -5002,30 +5401,30 @@ mod tests {
         assert!(config.health_check_enabled);
         assert_eq!(config.health_check_interval_secs, 60);
     }
-    
+
     #[test]
     fn test_get_healthy_endpoints() {
         let config = LifxConfig::new("test_token".to_string())
             .add_endpoint("https://api1.lifx.com".to_string())
             .add_endpoint("https://api2.lifx.com".to_string())
             .add_endpoint("https://api3.lifx.com".to_string());
-            
+
         config.init_health_tracking();
-        
+
         // Initially all should be healthy
         let healthy = config.get_healthy_endpoints();
         assert_eq!(healthy.len(), 3);
-        
+
         // Mark one as failed
         config.mark_endpoint_failure("https://api2.lifx.com");
         config.mark_endpoint_failure("https://api2.lifx.com");
         config.mark_endpoint_failure("https://api2.lifx.com");
-        
+
         let healthy = config.get_healthy_endpoints();
         assert_eq!(healthy.len(), 2);
         assert!(!healthy.contains(&"https://api2.lifx.com".to_string()));
     }
-    
+
     #[test]
     fn test_round_robin_endpoint_selection() {
         let config = LifxConfig::new("test_token".to_string())
@@ -5033,24 +5432,24 @@ mod tests {
             .add_endpoint("https://api2.lifx.com".to_string())
             .add_endpoint("https://api3.lifx.com".to_string())
             .with_strategy(FailoverStrategy::RoundRobin);
-            
+
         config.init_health_tracking();
-        
+
         // Should rotate through endpoints
         let first = config.get_next_endpoint();
         let second = config.get_next_endpoint();
         let third = config.get_next_endpoint();
         let fourth = config.get_next_endpoint();
-        
+
         assert!(first.is_some());
         assert!(second.is_some());
         assert!(third.is_some());
         assert!(fourth.is_some());
-        
+
         // Fourth should wrap around to first
         assert_eq!(fourth, first);
     }
-    
+
     #[test]
     fn test_failover_strategy_endpoint_selection() {
         let config = LifxConfig::new("test_token".to_string())
@@ -5058,17 +5457,17 @@ mod tests {
             .add_endpoint("https://api2.lifx.com".to_string())
             .add_endpoint("https://api3.lifx.com".to_string())
             .with_strategy(FailoverStrategy::Failover);
-            
+
         config.init_health_tracking();
-        
+
         // Should always return first healthy endpoint
         let first = config.get_next_endpoint();
         let second = config.get_next_endpoint();
-        
+
         assert_eq!(first, second);
         assert_eq!(first, Some("https://api1.lifx.com".to_string()));
     }
-    
+
     #[test]
     fn test_fastest_first_strategy() {
         let config = LifxConfig::new("test_token".to_string())
@@ -5076,35 +5475,35 @@ mod tests {
             .add_endpoint("https://api2.lifx.com".to_string())
             .add_endpoint("https://api3.lifx.com".to_string())
             .with_strategy(FailoverStrategy::FastestFirst);
-            
+
         config.init_health_tracking();
-        
+
         // Mark different response times
         config.mark_endpoint_success("https://api1.lifx.com", Duration::from_millis(500));
         config.mark_endpoint_success("https://api2.lifx.com", Duration::from_millis(100));
         config.mark_endpoint_success("https://api3.lifx.com", Duration::from_millis(300));
-        
+
         // Should return fastest endpoint
         let fastest = config.get_next_endpoint();
         assert_eq!(fastest, Some("https://api2.lifx.com".to_string()));
     }
-    
+
     #[test]
     fn test_unlimited_endpoints() {
         let mut config = LifxConfig::new("test_token".to_string());
-        
+
         // Add 100 endpoints
         for i in 0..100 {
             config = config.add_endpoint(format!("https://api{}.lifx.com", i));
         }
-        
+
         assert_eq!(config.api_endpoints.len(), 100);
-        
+
         config.init_health_tracking();
         let healthy = config.get_healthy_endpoints();
         assert_eq!(healthy.len(), 100);
     }
-    
+
     #[test]
     fn test_prioritized_endpoints_with_failures() {
         let config = LifxConfig::new("test_token".to_string())
@@ -5112,39 +5511,42 @@ mod tests {
             .add_endpoint("https://api2.lifx.com".to_string())
             .add_endpoint("https://api3.lifx.com".to_string())
             .with_strategy(FailoverStrategy::Failover);
-            
+
         config.init_health_tracking();
-        
+
         // Mark first endpoint as failed
         for _ in 0..3 {
             config.mark_endpoint_failure("https://api1.lifx.com");
         }
-        
+
         let prioritized = config.get_prioritized_endpoints();
-        
+
         // Should have healthy endpoints first
         assert_eq!(prioritized[0], "https://api2.lifx.com");
         assert_eq!(prioritized[1], "https://api3.lifx.com");
         // Unhealthy endpoint may still appear if retry time has passed
     }
-    
+
     #[test]
     fn test_config_serialization() {
         let config = LifxConfig::new("test_token".to_string())
             .add_endpoint("https://api.lifx.com".to_string())
             .with_strategy(FailoverStrategy::RoundRobin)
             .with_timeout(3000);
-            
+
         // Serialize to JSON
         let json = serde_json::to_string(&config).unwrap();
         assert!(json.contains("test_token"));
         assert!(json.contains("https://api.lifx.com"));
-        
+
         // Deserialize back
         let deserialized: LifxConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(deserialized.access_token, config.access_token);
         assert_eq!(deserialized.api_endpoints, config.api_endpoints);
-        assert_eq!(deserialized.failover_config.strategy, config.failover_config.strategy);
+        assert_eq!(
+            deserialized.failover_config.strategy,
+            config.failover_config.strategy
+        );
     }
 
     // Tests for error handling improvements
@@ -5152,17 +5554,17 @@ mod tests {
     fn test_mutex_error_handling() {
         let config = LifxConfig::new("test_token".to_string())
             .add_endpoint("https://api.lifx.com".to_string());
-        
+
         // Test that init_health_tracking doesn't panic
         config.init_health_tracking();
-        
+
         // Test that get_healthy_endpoints doesn't panic
         let healthy = config.get_healthy_endpoints();
         assert_eq!(healthy.len(), 1);
-        
+
         // Test mark_endpoint_success doesn't panic
         config.mark_endpoint_success("https://api.lifx.com", Duration::from_millis(100));
-        
+
         // Test mark_endpoint_failure doesn't panic
         config.mark_endpoint_failure("https://api.lifx.com");
     }
@@ -5173,9 +5575,9 @@ mod tests {
             .add_endpoint("https://api1.lifx.com".to_string())
             .add_endpoint("https://api2.lifx.com".to_string())
             .with_strategy(FailoverStrategy::FastestFirst);
-        
+
         config.init_health_tracking();
-        
+
         // Test FastestFirst strategy doesn't panic when accessing mutex
         let endpoint = config.get_next_endpoint();
         assert!(endpoint.is_some());
@@ -5187,14 +5589,14 @@ mod tests {
             .add_endpoint("https://api1.lifx.com".to_string())
             .add_endpoint("https://api2.lifx.com".to_string())
             .with_strategy(FailoverStrategy::Failover);
-        
+
         config.init_health_tracking();
-        
+
         // Mark one endpoint as failed
         config.mark_endpoint_failure("https://api1.lifx.com");
         config.mark_endpoint_failure("https://api1.lifx.com");
         config.mark_endpoint_failure("https://api1.lifx.com");
-        
+
         // Test that get_prioritized_endpoints doesn't panic
         let endpoints = config.get_prioritized_endpoints();
         assert!(!endpoints.is_empty());
@@ -5207,23 +5609,27 @@ mod tests {
         use std::sync::Arc;
         use std::thread;
 
-        let config = Arc::new(LifxConfig::new("test_token".to_string())
-            .add_endpoint("https://api.lifx.com".to_string()));
-        
+        let config = Arc::new(
+            LifxConfig::new("test_token".to_string())
+                .add_endpoint("https://api.lifx.com".to_string()),
+        );
+
         config.init_health_tracking();
-        
+
         let config_clone = config.clone();
-        
+
         // Create a thread that will panic while holding the mutex
         let handle = thread::spawn(move || {
-            let _guard = config_clone.endpoint_health.lock()
+            let _guard = config_clone
+                .endpoint_health
+                .lock()
                 .expect("Failed to acquire endpoint_health mutex lock: mutex was poisoned");
             panic!("Intentionally poisoning the mutex");
         });
-        
+
         // Wait for the thread to panic
         let _ = handle.join();
-        
+
         // This should now panic with our custom message
         config.get_healthy_endpoints();
     }

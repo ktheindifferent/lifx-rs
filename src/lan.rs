@@ -24,13 +24,12 @@
 //! suspected to be internal messages that are used by offical LIFX apps, but that aren't documented.
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
-use thiserror::Error;
 use std::convert::{TryFrom, TryInto};
-use std::io::Cursor;
 use std::io;
+use std::io::Cursor;
+use thiserror::Error;
 
-
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Various message encoding/decoding errors
 #[derive(Error, Debug)]
@@ -1751,22 +1750,21 @@ pub struct ProductInfo {
     pub company: &'static str,
     pub vendor_id: i64,
     pub product_id: i64,
-    pub capabilities: ProductCapabilities
+    pub capabilities: ProductCapabilities,
 }
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ProductCapabilities {
-    pub has_color: bool, 
-    pub has_variable_color_temp: bool, 
-    pub has_ir: bool, 
-    pub has_hev: bool, 
-    pub has_chain: bool, 
-    pub has_matrix: bool, 
-    pub has_multizone: bool, 
-    pub min_kelvin: i64, 
-    pub max_kelvin: i64 
+    pub has_color: bool,
+    pub has_variable_color_temp: bool,
+    pub has_ir: bool,
+    pub has_hev: bool,
+    pub has_chain: bool,
+    pub has_matrix: bool,
+    pub has_multizone: bool,
+    pub min_kelvin: i64,
+    pub max_kelvin: i64,
 }
-
 
 /// Look up info about what a LIFX product supports.
 ///
@@ -2050,19 +2048,19 @@ mod tests {
     #[test]
     fn test_lifx_string_serialization() {
         use std::io::Cursor;
-        
+
         // Test empty string
         let empty = LifxString::new("");
         let mut buf = Vec::new();
         buf.write_val(empty.clone()).unwrap();
         assert_eq!(buf.len(), 32);
         assert_eq!(buf, vec![0u8; 32]);
-        
+
         // Test reading back empty string
         let mut cursor = Cursor::new(buf);
         let read_empty: LifxString = cursor.read_val().unwrap();
         assert_eq!(read_empty.0, "");
-        
+
         // Test short string
         let short = LifxString::new("Test");
         let mut buf = Vec::new();
@@ -2070,12 +2068,12 @@ mod tests {
         assert_eq!(buf.len(), 32);
         assert_eq!(&buf[0..4], b"Test");
         assert_eq!(&buf[4..32], &[0u8; 28]);
-        
+
         // Test reading back short string
         let mut cursor = Cursor::new(buf);
         let read_short: LifxString = cursor.read_val().unwrap();
         assert_eq!(read_short.0, "Test");
-        
+
         // Test exactly 32 byte string (no truncation needed)
         let exact = LifxString::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
         let mut buf = Vec::new();
@@ -2085,12 +2083,12 @@ mod tests {
         assert_eq!(exact.0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
         assert_eq!(exact.0.len(), 32);
         assert_eq!(&buf[0..32], b"ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
-        
+
         // Test reading back 32 byte string
         let mut cursor = Cursor::new(buf);
         let read_exact: LifxString = cursor.read_val().unwrap();
         assert_eq!(read_exact.0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
-        
+
         // Test string longer than 32 (should be truncated by LifxString::new)
         let long = LifxString::new("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
         let mut buf = Vec::new();
@@ -2099,7 +2097,7 @@ mod tests {
         // LifxString::new truncates to 32 chars
         assert_eq!(long.0.len(), 32);
         assert_eq!(&buf[0..32], long.0.as_bytes());
-        
+
         // Test special characters (ASCII only)
         let special = LifxString::new("Light-01_Test!");
         let mut buf = Vec::new();
@@ -2107,7 +2105,7 @@ mod tests {
         assert_eq!(buf.len(), 32);
         assert_eq!(&buf[0..14], b"Light-01_Test!");
         assert_eq!(&buf[14..32], &[0u8; 18]);
-        
+
         // Test reading back special characters
         let mut cursor = Cursor::new(buf);
         let read_special: LifxString = cursor.read_val().unwrap();
