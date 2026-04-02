@@ -589,7 +589,7 @@ impl LifxConfig {
                     if let Some(endpoint) = chunk.first() {
                         self.mark_endpoint_success(endpoint, start.elapsed());
                     }
-                    Ok(result)
+                    return Ok(result);
                 }
                 Err(err) => {
                     // Mark all attempted endpoints as failed
