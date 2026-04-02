@@ -589,7 +589,7 @@ impl LifxConfig {
                     if let Some(endpoint) = chunk.first() {
                         self.mark_endpoint_success(endpoint, start.elapsed());
                     }
-                    return Ok(result);
+                    Ok(result)
                 }
                 Err(err) => {
                     // Mark all attempted endpoints as failed
@@ -740,7 +740,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -759,14 +759,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -867,7 +867,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -883,14 +883,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -993,7 +993,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1012,14 +1012,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1130,7 +1130,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1149,14 +1149,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1258,7 +1258,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<Lights>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1271,14 +1271,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Lights>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1399,7 +1399,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1416,14 +1416,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1532,7 +1532,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1551,14 +1551,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1673,7 +1673,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1692,14 +1692,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1799,7 +1799,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1815,14 +1815,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -1887,7 +1887,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(e) => {
                 if config.api_endpoints.len() > 1 {
@@ -1902,14 +1902,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(e2) => {
-                            return Err(e2);
+                            Err(e2)
                         }
                     }
                 } else {
-                    return Err(e);
+                    Err(e)
                 }
             }
         }
@@ -1968,7 +1968,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -1987,12 +1987,12 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => return Err(err2),
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2090,7 +2090,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2106,14 +2106,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2227,7 +2227,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(e) => {
                 if config.api_endpoints.len() > 1 {
@@ -2245,14 +2245,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(e2) => {
-                            return Err(e2);
+                            Err(e2)
                         }
                     }
                 } else {
-                    return Err(e);
+                    Err(e)
                 }
             }
         }
@@ -2345,7 +2345,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2360,14 +2360,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2465,7 +2465,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2483,14 +2483,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2592,7 +2592,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2610,14 +2610,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2688,7 +2688,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<Lights>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2700,14 +2700,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Lights>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2819,7 +2819,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2835,14 +2835,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -2944,7 +2944,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -2960,14 +2960,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3071,7 +3071,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3087,14 +3087,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3189,7 +3189,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3203,14 +3203,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3270,7 +3270,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3285,14 +3285,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3348,7 +3348,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3366,14 +3366,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3468,7 +3468,7 @@ impl Light {
         match request {
             Ok(req) => {
                 let json = req.json::<LiFxResults>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3483,14 +3483,14 @@ impl Light {
                     match request {
                         Ok(req) => {
                             let json = req.json::<LiFxResults>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3550,7 +3550,7 @@ impl Scene {
         match request {
             Ok(req) => {
                 let json = req.json::<Scenes>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3563,14 +3563,14 @@ impl Scene {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Scenes>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3610,7 +3610,7 @@ impl Scene {
         match request {
             Ok(req) => {
                 let json = req.json::<Scenes>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3623,14 +3623,14 @@ impl Scene {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Scenes>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3687,7 +3687,7 @@ impl Color {
         match request {
             Ok(req) => {
                 let json = req.json::<Color>().await?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3700,14 +3700,14 @@ impl Color {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Color>().await?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
@@ -3746,7 +3746,7 @@ impl Color {
         match request {
             Ok(req) => {
                 let json = req.json::<Color>()?;
-                return Ok(json);
+                Ok(json)
             }
             Err(err) => {
                 if config.api_endpoints.len() > 1 {
@@ -3758,14 +3758,14 @@ impl Color {
                     match request {
                         Ok(req) => {
                             let json = req.json::<Color>()?;
-                            return Ok(json);
+                            Ok(json)
                         }
                         Err(err2) => {
-                            return Err(err2);
+                            Err(err2)
                         }
                     }
                 } else {
-                    return Err(err);
+                    Err(err)
                 }
             }
         }
